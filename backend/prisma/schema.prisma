@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum Role {
+    CITIZEN
+    NGO_ADMIN
+    VOLUNTEER
+    SUPER_ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(CITIZEN)
+  firstName    String
+  lastName     String
+  phone        String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  requests         Request[]
+  ngoProfile       NGO?
+  volunteerProfile Volunteer?
+
+  @@index([email])
+  @@index([role])
+}
+
+model NGO {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  registrationNo String    @unique
+  description    String?   @db.Text
+  address        String
+  city           String
+  state          String
+  isVerified     Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  requests  Request[]
+  resources Resource[]
+}
+
+model Volunteer {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills      Json?
+  bio         String?   @db.Text
+  isAvailable Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Request {
+  id           String        @id @default(uuid())
+  citizenId    String
+  citizen      User          @relation(fields: [citizenId], references: [id])
+  ngoId        String?
+  ngo          NGO?          @relation(fields: [ngoId], references: [id])
+  title        String
+  description  String        @db.Text
+  category     String
+  status       RequestStatus @default(PENDING)
+  urgencyLevel Int           @default(1)
+  address      String
+  city         String
+  state        String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status])
+  @@index([citizenId])
+  @@index([ngoId])
+}
+
+model Resource {
+  id          String    @id @default(uuid())
+  ngoId       String
+  ngo         NGO       @relation(fields: [ngoId], references: [id])
+  name        String
+  type        String
+  quantity    Float
+  unit        String?
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
