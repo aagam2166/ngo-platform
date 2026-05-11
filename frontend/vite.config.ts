@@ -7,4 +7,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  resolve: {
+    // This handles your @/ aliases natively in Vite 8
+    tsconfigPaths: true 
+  }
 })
