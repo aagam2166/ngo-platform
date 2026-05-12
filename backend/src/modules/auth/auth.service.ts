@@ -17,17 +17,42 @@ export const registerService = async (data: RegisterInput) => {
   // 2. Hash the password — never store plain text
   const passwordHash = await bcrypt.hash(data.password, 12);
 
-  // 3. Create the user in database
+  const role = data.role ?? 'CITIZEN';
+
+  // 3. Create user + role-specific profile in a single transaction
   const user = await prisma.user.create({
     data: {
       email: data.email,
       passwordHash,
       firstName: data.firstName,
       lastName: data.lastName,
-      role: data.role ?? 'CITIZEN',
+      role,
       phone: data.phone,
+      ...(role === 'NGO_ADMIN' && data.ngoProfile
+        ? {
+            ngoProfile: {
+              create: {
+                name: data.ngoProfile.name,
+                registrationNo: data.ngoProfile.registrationNo,
+                description: data.ngoProfile.description,
+                address: data.ngoProfile.address,
+                city: data.ngoProfile.city,
+                state: data.ngoProfile.state,
+              },
+            },
+          }
+        : {}),
+      ...(role === 'VOLUNTEER' && data.volunteerProfile
+        ? {
+            volunteerProfile: {
+              create: {
+                bio: data.volunteerProfile.bio,
+                skills: data.volunteerProfile.skills ?? [],
+              },
+            },
+          }
+        : {}),
     },
-    // Only return these fields — never return passwordHash
     select: {
       id: true,
       email: true,
