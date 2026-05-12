@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/errorHandler';
+import authRoutes from './modules/auth/auth.routes';
 
 const app = express();
 
@@ -15,8 +16,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'NGO API is running' });
 });
 
-// Routes will be added here on Day 3+
-// app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/auth', authRoutes);
 
 app.use(errorHandler);
 
