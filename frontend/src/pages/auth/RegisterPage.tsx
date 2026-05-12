@@ -121,13 +121,19 @@ export default function RegisterPage() {
 
           {/* Header */}
           <div className="text-center mb-6">
-            <div className="w-20 h-20 rounded-full border-[3px] border-red-400 bg-white flex items-center justify-center mx-auto mb-4">
-              <svg viewBox="0 0 56 56" width="52" height="52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="22" cy="17" r="9" fill="#F5A623" />
-                <path d="M4 50 C4 34 40 34 40 50 Z" fill="#F5A623" />
-                <circle cx="42" cy="42" r="12" fill="#E53935" />
-                <line x1="42" y1="36" x2="42" y2="48" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                <line x1="36" y1="42" x2="48" y2="42" stroke="white" strokeWidth="3" strokeLinecap="round" />
+            <div className="w-20 h-20 mx-auto mb-4">
+              <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Outer circle */}
+                <circle cx="100" cy="100" r="95" stroke="#FF9500" strokeWidth="8" />
+                {/* User silhouette background */}
+                <circle cx="100" cy="70" r="30" fill="#FFEB3B" />
+                <path d="M 60 120 Q 60 100 100 100 Q 140 100 140 120 L 140 160 Q 140 180 100 180 Q 60 180 60 160 Z" fill="#FFEB3B" />
+                {/* Plus badge */}
+                <circle cx="145" cy="145" r="28" fill="#FF9500" />
+                <g stroke="white" strokeWidth="6" strokeLinecap="round">
+                  <line x1="145" y1="130" x2="145" y2="160" />
+                  <line x1="130" y1="145" x2="160" y2="145" />
+                </g>
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Create account</h1>
