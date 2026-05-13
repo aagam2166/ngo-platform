@@ -46,7 +46,7 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/login', data);
       dispatch(setCredentials({ user: res.data.data.user, token: res.data.data.token }));
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
       setApiError(err.response?.data?.message || 'Login failed. Please try again.');
     }

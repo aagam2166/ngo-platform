@@ -100,7 +100,7 @@ export default function RegisterPage() {
     try {
       const res = await api.post('/auth/register', payload);
       dispatch(setCredentials({ user: res.data.data.user, token: res.data.data.token }));
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
       setApiError(err.response?.data?.message || 'Registration failed. Please try again.');
     }
