@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import Navbar from '../components/layout/Navbar';
+import { Link } from 'react-router-dom';
 
 const ROLE_CONFIG = {
   CITIZEN: {
@@ -80,9 +81,9 @@ export default function Dashboard() {
           </p>
           <div className="flex gap-3 mt-4">
             {config.actions.map((action) => (
-              <a
+              <Link
                 key={action.href}
-                href={action.href}
+                to={action.href}
                 className={
                   action.primary
                     ? 'bg-orange-500 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors shadow-sm'
@@ -90,7 +91,7 @@ export default function Dashboard() {
                 }
               >
                 {action.label}
-              </a>
+              </Link>
             ))}
           </div>
         </div>
