@@ -1,0 +1,155 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import Navbar from '../../components/layout/Navbar';
+import StatusBadge from '../../components/StatusBadge';
+import api from '../../lib/api';
+
+interface Request {
+  id: string;
+  title: string;
+  category: string;
+  status: string;
+  urgencyLevel: number;
+  city: string;
+  state: string;
+  createdAt: string;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  FOOD:      '🍱 Food',
+  MEDICAL:   '🏥 Medical',
+  SHELTER:   '🏠 Shelter',
+  EDUCATION: '📚 Education',
+  CLOTHING:  '👕 Clothing',
+  FINANCIAL: '💰 Financial',
+  OTHER:     '📦 Other',
+};
+
+const URGENCY_COLORS: Record<number, string> = {
+  1: 'text-green-600',
+  2: 'text-lime-600',
+  3: 'text-yellow-600',
+  4: 'text-orange-600',
+  5: 'text-red-600',
+};
+
+export default function MyRequestsPage() {
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const res = await api.get('/requests/mine');
+        setRequests(res.data.data);
+      } catch (err: any) {
+        setError('Failed to load your requests. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <Navbar />
+      <div className="max-w-3xl mx-auto px-4 py-10">
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">My Requests</h1>
+            <p className="text-sm text-gray-500 mt-1">Track all your submitted help requests</p>
+          </div>
+          <Link
+            to="/requests/new"
+            className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors shadow-sm"
+          >
+            + New Request
+          </Link>
+        </div>
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+
+        {/* Error */}
+        {!loading && error && (
+          <div className="p-4 rounded-lg bg-red-50 border border-red-100 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && requests.length === 0 && (
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
+            <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">📋</span>
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-1">No requests yet</h3>
+            <p className="text-sm text-gray-500 mb-5">
+              Submit your first help request and an NGO will get back to you.
+            </p>
+            <Link
+              to="/requests/new"
+              className="bg-orange-500 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors"
+            >
+              Submit a Request
+            </Link>
+          </div>
+        )}
+
+        {/* Request cards */}
+        {!loading && !error && requests.length > 0 && (
+          <div className="space-y-4">
+            {requests.map((req) => (
+              <div
+                key={req.id}
+                className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:border-orange-200 transition-colors"
+              >
+                {/* Top row */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate">{req.title}</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {req.city}, {req.state} · {formatDate(req.createdAt)}
+                    </p>
+                  </div>
+                  <StatusBadge status={req.status} />
+                </div>
+
+                {/* Bottom row */}
+                <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-50">
+                  <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-medium">
+                    {CATEGORY_LABELS[req.category] ?? req.category}
+                  </span>
+                  <span className={`text-xs font-semibold ${URGENCY_COLORS[req.urgencyLevel] ?? 'text-gray-500'}`}>
+                    Urgency {req.urgencyLevel}/5
+                  </span>
+                  <span className="text-xs text-gray-300 ml-auto font-mono">
+                    #{req.id.slice(0, 8)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}

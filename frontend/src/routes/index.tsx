@@ -6,6 +6,8 @@ import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import Dashboard from '../pages/Dashboard';
 import PrivateRoute from './PrivateRoute';
+import SubmitRequestPage from '../pages/citizen/SubmitRequestPage';
+import MyRequestsPage from '../pages/citizen/MyRequestsPage';
 
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useSelector((s: RootState) => s.auth);
@@ -48,6 +50,9 @@ export default function AppRouter() {
             </PrivateRoute>
           }
         />
+
+        <Route path="/requests/new" element={<PrivateRoute><SubmitRequestPage /></PrivateRoute>} />
+        <Route path="/requests/mine" element={<PrivateRoute><MyRequestsPage /></PrivateRoute>} />
 
         {/* Catch all unknown routes */}
         <Route path="*" element={<Navigate to="/" replace />} />
