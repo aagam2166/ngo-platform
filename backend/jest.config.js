@@ -6,4 +6,7 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.test.ts'],
   forceExit: true,
   testTimeout: 30000,
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }],
+  },
 };

@@ -102,7 +102,11 @@ export default function RegisterPage() {
       dispatch(setCredentials({ user: res.data.data.user, token: res.data.data.token }));
       navigate('/dashboard');
     } catch (err: any) {
-      setApiError(err.response?.data?.message || 'Registration failed. Please try again.');
+      if (!err.response) {
+        setApiError('Cannot reach the server. Make sure the backend is running on port 3000.');
+      } else {
+        setApiError(err.response.data?.message || 'Registration failed. Please try again.');
+      }
     }
   };
 
