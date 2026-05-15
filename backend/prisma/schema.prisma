@@ -86,6 +86,8 @@ model Request {
   address      String
   city         String
   state        String
+  rejectionReason String? @db.Text
+  reviewedAt    DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 

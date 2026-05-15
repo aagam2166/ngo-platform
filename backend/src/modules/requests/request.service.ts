@@ -51,3 +51,75 @@ export const getAllRequestsForNGO = async () => {
     orderBy: { createdAt: 'desc' },
   });
 };
+
+export const updateRequestStatus = async (
+  requestId: string,
+  status: string,
+  ngoId,
+  rejectionReason?: string
+) => {
+  // Make sure request exists
+  const request = await prisma.request.findUnique({
+    where: { id: requestId },
+  });
+
+  if (!request) throw new AppError('Request not found', 404);
+
+  // Can't update a request that is already completed or cancelled
+  if (request.status === 'COMPLETED' || request.status === 'CANCELLED') {
+    throw new AppError(
+      `Cannot update a request that is already ${request.status.toLowerCase()}`,
+      400
+    );
+  }
+
+  // Rejection requires a reason
+  if (status === 'REJECTED' && !rejectionReason) {
+    throw new AppError('Rejection reason is required when rejecting a request', 400);
+  }
+
+  return prisma.request.update({
+    where: { id: requestId },
+    data: {
+      status: status as any,
+      ngoId,
+      rejectionReason: status === 'REJECTED' ? rejectionReason : null,
+      reviewedAt: new Date(),
+    },
+    include: {
+      citizen: {
+        select: { firstName: true, lastName: true, email: true },
+      },
+    },
+  });
+};
+
+export const getRequestStats = async (ngoId?: string) => {
+  // Count requests grouped by status
+  const allStatuses = [
+    'PENDING',
+    'UNDER_REVIEW',
+    'APPROVED',
+    'REJECTED',
+    'IN_PROGRESS',
+    'COMPLETED',
+    'CANCELLED',
+  ];
+
+  const counts = await Promise.all(
+    allStatuses.map((status) =>
+      prisma.request.count({
+        where: ngoId ? { status: status as any, ngoId } : { status: status as any },
+      })
+    )
+  );
+
+  const stats: Record<string, number> = {};
+  allStatuses.forEach((status, i) => {
+    stats[status] = counts[i];
+  });
+
+  stats.TOTAL = counts.reduce((sum, c) => sum + c, 0);
+
+  return stats;
+};
