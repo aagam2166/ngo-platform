@@ -8,10 +8,11 @@ import Dashboard from '../pages/Dashboard';
 import PrivateRoute from './PrivateRoute';
 import SubmitRequestPage from '../pages/citizen/SubmitRequestPage';
 import MyRequestsPage from '../pages/citizen/MyRequestsPage';
+import NGODashboard from '../pages/ngo/NGODashboard';
+import AdminPanel from '../pages/admin/AdminPanel';
 
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useSelector((s: RootState) => s.auth);
-  // If already logged in, don't let them see login/register again
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }
@@ -20,10 +21,8 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* Public only — redirect to dashboard if already logged in */}
         <Route
           path="/login"
           element={
@@ -41,7 +40,6 @@ export default function AppRouter() {
           }
         />
 
-        {/* Protected — must be logged in */}
         <Route
           path="/dashboard"
           element={
@@ -54,7 +52,24 @@ export default function AppRouter() {
         <Route path="/requests/new" element={<PrivateRoute><SubmitRequestPage /></PrivateRoute>} />
         <Route path="/requests/mine" element={<PrivateRoute><MyRequestsPage /></PrivateRoute>} />
 
-        {/* Catch all unknown routes */}
+        <Route
+          path="/ngo/requests"
+          element={
+            <PrivateRoute allowedRoles={['NGO_ADMIN']}>
+              <NGODashboard />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute allowedRoles={['SUPER_ADMIN']}>
+              <AdminPanel />
+            </PrivateRoute>
+          }
+        />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

@@ -96,12 +96,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Stats row — placeholder cards for now */}
+        {/* Stats row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {[
-            { label: 'Total Requests', value: '—', sub: 'Coming Day 5' },
-            { label: 'Active', value: '—', sub: 'Coming Day 5' },
-            { label: 'Resolved', value: '—', sub: 'Coming Day 5' },
+            { label: 'Total Requests', value: '—', sub: 'See your dashboard' },
+            { label: 'Active', value: '—', sub: 'See your dashboard' },
+            { label: 'Resolved', value: '—', sub: 'See your dashboard' },
           ].map((stat) => (
             <div key={stat.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <p className="text-sm text-gray-500">{stat.label}</p>
