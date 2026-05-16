@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
+import RoleRoute from './RoleRoute';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
@@ -51,6 +52,15 @@ export default function AppRouter() {
 
         <Route path="/requests/new" element={<PrivateRoute><SubmitRequestPage /></PrivateRoute>} />
         <Route path="/requests/mine" element={<PrivateRoute><MyRequestsPage /></PrivateRoute>} />
+
+        <Route
+          path="/ngo/dashboard"
+          element={
+            <RoleRoute allowedRoles={['NGO_ADMIN', 'SUPER_ADMIN']}>
+              <NGODashboard />
+            </RoleRoute>
+          }
+        />
 
         <Route
           path="/ngo/requests"

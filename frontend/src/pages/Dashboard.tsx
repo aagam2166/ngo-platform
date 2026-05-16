@@ -20,7 +20,7 @@ const ROLE_CONFIG = {
     description: 'Manage incoming requests and assign volunteers.',
     icon: '🏢',
     actions: [
-      { label: 'View Pending Requests', href: '/ngo/requests', primary: true },
+      { label: 'View Pending Requests', href: '/ngo/dashboard', primary: true },
       { label: 'Manage Volunteers', href: '/ngo/volunteers', primary: false },
     ],
   },

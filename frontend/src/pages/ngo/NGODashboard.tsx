@@ -34,13 +34,13 @@ interface NGOProfile {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  FOOD:      '🍱 Food',
-  MEDICAL:   '🏥 Medical',
-  SHELTER:   '🏠 Shelter',
+  FOOD: '🍱 Food',
+  MEDICAL: '🏥 Medical',
+  SHELTER: '🏠 Shelter',
   EDUCATION: '📚 Education',
-  CLOTHING:  '👕 Clothing',
+  CLOTHING: '👕 Clothing',
   FINANCIAL: '💰 Financial',
-  OTHER:     '📦 Other',
+  OTHER: '📦 Other',
 };
 
 const URGENCY_COLORS: Record<number, string> = {
@@ -82,6 +82,9 @@ export default function NGODashboard() {
   const [accepting, setAccepting] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [pendingStatuses, setPendingStatuses] = useState<Record<string, string>>({});
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({});
+  const [submittingReject, setSubmittingReject] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -114,6 +117,36 @@ export default function NGODashboard() {
       alert(err?.response?.data?.message ?? 'Failed to accept request.');
     } finally {
       setAccepting(null);
+    }
+  };
+
+  const handleReject = async (requestId: string) => {
+    const reason = rejectionReasons[requestId];
+    if (!reason || !reason.trim()) return;
+
+    setSubmittingReject(requestId);
+    try {
+      // Step 1 — accept the request first (assigns it to this NGO)
+      await api.patch(`/ngo/requests/${requestId}/accept`);
+
+      // Step 2 — immediately reject it with the reason
+      await api.patch(`/ngo/requests/${requestId}/status`, {
+        status: 'REJECTED',
+        rejectionReason: reason.trim(),
+      });
+
+      // Remove from queue
+      setQueue((prev) => prev.filter((r) => r.id !== requestId));
+      setRejectingId(null);
+      setRejectionReasons((prev) => {
+        const next = { ...prev };
+        delete next[requestId];
+        return next;
+      });
+    } catch (err: any) {
+      alert(err?.response?.data?.message ?? 'Failed to reject request.');
+    } finally {
+      setSubmittingReject(null);
     }
   };
 
@@ -212,11 +245,10 @@ export default function NGODashboard() {
             <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-6 w-fit">
               <button
                 onClick={() => setTab('queue')}
-                className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
-                  tab === 'queue'
+                className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'queue'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 Request Queue
                 {queue.length > 0 && (
@@ -227,11 +259,10 @@ export default function NGODashboard() {
               </button>
               <button
                 onClick={() => setTab('mine')}
-                className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
-                  tab === 'mine'
+                className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'mine'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 My Requests
                 {myRequests.length > 0 && (
@@ -268,14 +299,68 @@ export default function NGODashboard() {
                               {req.city}, {req.state} · {formatDate(req.createdAt)}
                             </p>
                           </div>
-                          <button
-                            onClick={() => handleAccept(req.id)}
-                            disabled={accepting === req.id}
-                            className="flex-shrink-0 bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {accepting === req.id ? 'Accepting…' : 'Accept'}
-                          </button>
+                          <div className="flex gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => handleAccept(req.id)}
+                              disabled={accepting === req.id || submittingReject === req.id}
+                              className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {accepting === req.id ? 'Accepting…' : 'Accept'}
+                            </button>
+                            <button
+                              onClick={() =>
+                                setRejectingId(rejectingId === req.id ? null : req.id)
+                              }
+                              disabled={accepting === req.id || submittingReject === req.id}
+                              className="bg-white border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Reject
+                            </button>
+                          </div>
                         </div>
+
+                        {/* Inline rejection form — shows when Reject is clicked */}
+                        {rejectingId === req.id && (
+                          <div className="mt-3 p-4 bg-red-50 rounded-lg border border-red-100">
+                            <p className="text-sm font-semibold text-red-700 mb-2">
+                              Reason for declining this request
+                            </p>
+                            <textarea
+                              rows={2}
+                              value={rejectionReasons[req.id] ?? ''}
+                              onChange={(e) =>
+                                setRejectionReasons((prev) => ({ ...prev, [req.id]: e.target.value }))
+                              }
+                              placeholder="Explain why your NGO cannot handle this request…"
+                              className="w-full text-sm border border-red-200 rounded-lg px-3 py-2 outline-none focus:border-red-400 resize-none bg-white mb-3"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleReject(req.id)}
+                                disabled={
+                                  !rejectionReasons[req.id]?.trim() ||
+                                  submittingReject === req.id
+                                }
+                                className="flex-1 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+                              >
+                                {submittingReject === req.id ? 'Declining…' : 'Confirm Decline'}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setRejectingId(null);
+                                  setRejectionReasons((prev) => {
+                                    const next = { ...prev };
+                                    delete next[req.id];
+                                    return next;
+                                  });
+                                }}
+                                className="flex-1 border border-gray-300 bg-white text-gray-600 text-sm font-semibold py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
 
                         <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-50">
                           <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-medium">
