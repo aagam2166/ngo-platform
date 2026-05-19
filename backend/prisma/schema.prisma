@@ -59,6 +59,8 @@ model NGO {
 
   requests  Request[]
   resources Resource[]
+  volunteers NGOVolunteer[]
+  VolunteerAssignments VolunteerAssignment[]
 }
 
 model Volunteer {
@@ -70,6 +72,9 @@ model Volunteer {
   isAvailable Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  ngoMemberships NGOVolunteer[]
+
+  assignments VolunteerAssignment[]
 }
 
 model Request {
@@ -87,6 +92,7 @@ model Request {
   city         String
   state        String
   rejectionReason String? @db.Text
+  assignments VolunteerAssignment[]
   reviewedAt    DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -107,4 +113,38 @@ model Resource {
   description String?   @db.Text
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model VolunteerAssignment {
+  id          String    @id @default(uuid())
+  requestId   String
+  request     Request   @relation(fields: [requestId], references: [id])
+  volunteerId String
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id])
+  ngoId       String
+  ngo         NGO       @relation(fields: [ngoId], references: [id])
+  assignedBy  String
+  assignedAt  DateTime  @default(now())
+  status      String    @default("ASSIGNED")
+  notes       String?   @db.Text
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([requestId, volunteerId])
+  @@index([volunteerId])
+  @@index([requestId])
+  @@index([ngoId])
+}
+
+model NGOVolunteer {
+  id String @id @default(uuid())
+  ngoId String
+  ngo NGO @relation(fields: [ngoId], references: [id])
+  volunteerId String
+  volunteer Volunteer @relation(fields: [volunteerId], references: [id])
+  joinedAt DateTime @default(now())
+  isActive Boolean @default(true)
+
+  @@unique([ngoId, volunteerId])
+  @@index([ngoId])
+  @@index([volunteerId])
 }
