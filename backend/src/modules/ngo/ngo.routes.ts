@@ -7,6 +7,7 @@ import {
   getMyRequestsHandler,
   acceptRequestHandler,
   updateStatusHandler,
+  returnRequestHandler,
 } from './ngo.controller';
 
 const router = Router();
@@ -18,5 +19,6 @@ router.get('/queue', getQueueHandler);
 router.get('/my-requests', getMyRequestsHandler);
 router.patch('/requests/:id/accept', acceptRequestHandler);
 router.patch('/requests/:id/status', updateStatusHandler);
+router.patch('/requests/:id/return', returnRequestHandler);
 
 export default router;

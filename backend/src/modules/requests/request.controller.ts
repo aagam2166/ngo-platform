@@ -6,6 +6,7 @@ import {
     getMyRequests,
     getRequestById,
     getAllRequestsForNGO,
+    cancelRequest,
 } from './request.service'
 import { AppError } from '../../middleware/errorHandler';
 import prisma from '../../config/prisma';
@@ -142,4 +143,15 @@ export const getStatsHandler = async (
     catch(err){
         next(err);
     }
+};
+
+export const cancelRequestHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const updated = await cancelRequest(req.params.id as string, req.user!.userId);
+    sendSuccess(res, updated);
+  } catch (err) { next(err); }
 };
