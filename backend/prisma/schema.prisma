@@ -61,6 +61,8 @@ model NGO {
   resources Resource[]
   volunteers NGOVolunteer[]
   VolunteerAssignments VolunteerAssignment[]
+  joinRequests VolunteerJoinRequest[]
+  VolunteerInterests VolunteerInterest[]
 }
 
 model Volunteer {
@@ -75,6 +77,8 @@ model Volunteer {
   ngoMemberships NGOVolunteer[]
 
   assignments VolunteerAssignment[]
+  joinRequests VolunteerJoinRequest[]
+  interests VolunteerInterest[]
 }
 
 model Request {
@@ -93,6 +97,7 @@ model Request {
   state        String
   rejectionReason String? @db.Text
   assignments VolunteerAssignment[]
+  VolunteerInterests VolunteerInterest[]
   reviewedAt    DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -147,4 +152,43 @@ model NGOVolunteer {
   @@unique([ngoId, volunteerId])
   @@index([ngoId])
   @@index([volunteerId])
+}
+
+model VolunteerJoinRequest {
+  id          String    @id @default(uuid())
+  volunteerId String
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  ngoId       String
+  ngo         NGO       @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  message     String?   @db.Text
+  status      String    @default("PENDING")
+  respondedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([volunteerId, ngoId])
+  @@index([volunteerId])
+  @@index([ngoId])
+  @@index([status])
+}
+
+model VolunteerInterest {
+  id          String    @id @default(uuid())
+  volunteerId String
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  requestId   String
+  request     Request   @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  ngoId       String
+  ngo         NGO       @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  message     String?   @db.Text
+  status      String    @default("PENDING")
+  respondedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([volunteerId, requestId])
+  @@index([volunteerId])
+  @@index([requestId])
+  @@index([ngoId])
+  @@index([status])
 }

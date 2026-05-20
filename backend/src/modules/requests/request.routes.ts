@@ -9,6 +9,7 @@ import {
   updateStatusHandler,
   getStatsHandler,
 } from './request.controller';
+import { cancelRequestHandler } from './request.controller';
 
 const router = Router();
 
@@ -42,5 +43,11 @@ router.patch(
 
 // Get single request — any authenticated user (service handles ownership check)
 router.get('/:id', authenticate, getOneRequestHandler);
+
+router.patch(
+  '/:id/cancel',
+  authenticate,
+  cancelRequestHandler
+);
 
 export default router;

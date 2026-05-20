@@ -75,3 +75,35 @@ export const updateRequestStatus = async (
     },
   });
 };
+
+export const returnRequestToQueue = async (
+  requestId: string,
+  userId: string
+) => {
+  const profile = await prisma.nGO.findUnique({ where: { userId } });
+  if (!profile) throw new AppError('NGO profile not found', 404);
+
+  const request = await prisma.request.findUnique({ where: { id: requestId } });
+  if (!request) throw new AppError('Request not found', 404);
+
+  if (request.ngoId !== profile.id) {
+    throw new AppError('You can only return requests assigned to your NGO', 403);
+  }
+
+  const returnable = ['UNDER_REVIEW', 'APPROVED'];
+  if (!returnable.includes(request.status)) {
+    throw new AppError(
+      `Only UNDER_REVIEW or APPROVED requests can be returned. Current status: ${request.status}`,
+      400
+    );
+  }
+
+  return prisma.request.update({
+    where: { id: requestId },
+    data: {
+      status: 'PENDING',
+      ngoId: null,
+      reviewedAt: null,
+    },
+  });
+};

@@ -123,3 +123,24 @@ export const getRequestStats = async (ngoId?: string) => {
 
   return stats;
 };
+
+export const cancelRequest = async (requestId: string, userId: string) => {
+  const request = await prisma.request.findUnique({ where: { id: requestId } });
+  if (!request) throw new AppError('Request not found', 404);
+
+  if (request.citizenId !== userId) {
+    throw new AppError('You can only cancel your own requests', 403);
+  }
+
+  if (request.status !== 'PENDING') {
+    throw new AppError(
+      `Only PENDING requests can be cancelled. Current status: ${request.status}`,
+      400
+    );
+  }
+
+  return prisma.request.update({
+    where: { id: requestId },
+    data: { status: 'CANCELLED' },
+  });
+};

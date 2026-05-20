@@ -8,6 +8,7 @@ import {
   acceptRequest,
   updateRequestStatus,
   updateStatusSchema,
+  returnRequestToQueue
 } from './ngo.service';
 
 export const getProfileHandler = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -54,4 +55,15 @@ export const updateStatusHandler = async (req: AuthRequest, res: Response, next:
   } catch (err) {
     next(err);
   }
+};
+
+export const returnRequestHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const updated = await returnRequestToQueue(req.params.id as string, req.user!.userId);
+    sendSuccess(res, updated);
+  } catch (err) { next(err); }
 };
