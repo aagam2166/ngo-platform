@@ -16,13 +16,13 @@ interface Request {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  FOOD:      '🍱 Food',
-  MEDICAL:   '🏥 Medical',
-  SHELTER:   '🏠 Shelter',
+  FOOD: '🍱 Food',
+  MEDICAL: '🏥 Medical',
+  SHELTER: '🏠 Shelter',
   EDUCATION: '📚 Education',
-  CLOTHING:  '👕 Clothing',
+  CLOTHING: '👕 Clothing',
   FINANCIAL: '💰 Financial',
-  OTHER:     '📦 Other',
+  OTHER: '📦 Other',
 };
 
 const URGENCY_COLORS: Record<number, string> = {
@@ -37,21 +37,41 @@ export default function MyRequestsPage() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Fixed: Moved state definitions inside the component
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [isCancellingAction, setIsCancellingAction] = useState(false);
+  const [cancelError, setCancelError] = useState('');
+
+  const fetchRequests = async () => {
+    try {
+      const res = await api.get('/requests/mine');
+      setRequests(res.data.data);
+    } catch (err: any) {
+      setError('Failed to load your requests. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const res = await api.get('/requests/mine');
-        setRequests(res.data.data);
-      } catch (err: any) {
-        setError('Failed to load your requests. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchRequests();
   }, []);
+
+  const handleCancel = async (id: string) => {
+    setCancelError('');
+    setIsCancellingAction(true);
+    try {
+      // Fixed: Converted straight quotes to template literals (backticks)
+      await api.patch(`/requests/${id}/cancel`);
+      await fetchRequests();
+      setCancellingId(null);
+    } catch (err: any) {
+      setCancelError(err.response?.data?.message || 'Failed to cancel request');
+    } finally {
+      setIsCancellingAction(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
@@ -80,14 +100,14 @@ export default function MyRequestsPage() {
           </Link>
         </div>
 
-        {/* Loading */}
+        {/* Loading Global State */}
         {loading && (
           <div className="flex items-center justify-center py-20">
             <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
 
-        {/* Error */}
+        {/* Error Global State */}
         {!loading && error && (
           <div className="p-4 rounded-lg bg-red-50 border border-red-100 text-sm text-red-600">
             {error}
@@ -132,7 +152,7 @@ export default function MyRequestsPage() {
                   <StatusBadge status={req.status} />
                 </div>
 
-                {/* Bottom row */}
+                {/* Bottom metadata row */}
                 <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-50">
                   <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-medium">
                     {CATEGORY_LABELS[req.category] ?? req.category}
@@ -144,6 +164,44 @@ export default function MyRequestsPage() {
                     #{req.id.slice(0, 8)}
                   </span>
                 </div>
+
+                {/* Dynamic Cancel Block — only for PENDING requests */}
+                {req.status === 'PENDING' && (
+                  <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between min-h-[32px]">
+                    {cancellingId === req.id ? (
+                      <div className="flex items-center gap-3 w-full">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-red-600 font-medium truncate">
+                            {cancelError ? cancelError : 'Are you sure you want to cancel?'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => handleCancel(req.id)}
+                            disabled={isCancellingAction}
+                            className="text-xs bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
+                          >
+                            {isCancellingAction ? 'Cancelling...' : 'Yes, Cancel'}
+                          </button>
+                          <button
+                            onClick={() => { setCancellingId(null); setCancelError(''); }}
+                            disabled={isCancellingAction}
+                            className="text-xs border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setCancellingId(req.id)}
+                        className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
+                      >
+                        Cancel Request
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

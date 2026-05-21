@@ -11,6 +11,8 @@ import SubmitRequestPage from '../pages/citizen/SubmitRequestPage';
 import MyRequestsPage from '../pages/citizen/MyRequestsPage';
 import NGODashboard from '../pages/ngo/NGODashboard';
 import AdminPanel from '../pages/admin/AdminPanel';
+import VolunteerDashboardPage from '../pages/volunteer/VolunteerDashboardPage';
+
 
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useSelector((s: RootState) => s.auth);
@@ -81,6 +83,15 @@ export default function AppRouter() {
         />
 
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="/volunteer/dashboard"
+          element={
+            <RoleRoute allowedRoles={['VOLUNTEER']}>
+              <VolunteerDashboardPage />
+            </RoleRoute>
+          }
+        />
+
       </Routes>
     </BrowserRouter>
   );
