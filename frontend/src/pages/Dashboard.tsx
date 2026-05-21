@@ -32,6 +32,8 @@ const ROLE_CONFIG = {
     actions: [
       { label: 'Browse Opportunities', href: '/volunteer/requests', primary: true },
       { label: 'My Assignments', href: '/volunteer/assignments', primary: false },
+      { label: 'My Assignments', href: '/volunteer/dashboard', primary: true },
+      { label: 'Find Requests', href: '/volunteer/dashboard', primary: false },
     ],
   },
   SUPER_ADMIN: {
