@@ -63,6 +63,7 @@ model NGO {
   VolunteerAssignments VolunteerAssignment[]
   joinRequests VolunteerJoinRequest[]
   VolunteerInterests VolunteerInterest[]
+  resourceAllocations ResourceAllocation[]
 }
 
 model Volunteer {
@@ -98,6 +99,7 @@ model Request {
   rejectionReason String? @db.Text
   assignments VolunteerAssignment[]
   VolunteerInterests VolunteerInterest[]
+  ResourceAllocations ResourceAllocation[]
   reviewedAt    DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -116,8 +118,10 @@ model Resource {
   quantity    Float
   unit        String?
   description String?   @db.Text
+  allocations ResourceAllocation[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
 }
 
 model VolunteerAssignment {
@@ -192,3 +196,22 @@ model VolunteerInterest {
   @@index([ngoId])
   @@index([status])
 }
+
+model ResourceAllocation {
+  id          String   @id @default(uuid())
+  resourceId  String
+  resource    Resource @relation(fields: [resourceId], references: [id], onDelete: Restrict)
+  requestId   String
+  request     Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  ngoId       String
+  ngo         NGO      @relation(fields: [ngoId], references: [id], onDelete: Restrict)
+  quantity    Float
+  notes       String?  @db.Text
+  allocatedAt DateTime @default(now())
+  allocatedBy String
+
+  @@index([resourceId])
+  @@index([requestId])
+  @@index([ngoId])
+}
+

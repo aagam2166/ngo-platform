@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import Navbar from '../../components/layout/Navbar';
 import StatusBadge from '../../components/StatusBadge';
 import api from '../../lib/api';
-
+import AllocateResourceModal from '../../components/AllocateResourceModal';
+import { Link } from 'react-router-dom';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Citizen {
@@ -88,6 +89,7 @@ const STATUS_LABELS: Record<string, string> = {
 export default function NGODashboard() {
   // Core data
   const [profile, setProfile] = useState<NGOProfile | null>(null);
+
   const [queue, setQueue] = useState<Request[]>([]);
   const [myRequests, setMyRequests] = useState<Request[]>([]);
   const [tab, setTab] = useState<Tab>('queue');
@@ -111,6 +113,8 @@ export default function NGODashboard() {
   const [volunteerLoading, setVolunteerLoading] = useState(false);
   const [volunteerError, setVolunteerError] = useState('');
   const [actionId, setActionId] = useState<string | null>(null);
+  const [allocatingRequestId, setAllocatingRequestId] = useState<string | null>(null);
+  const [allocatingRequestTitle, setAllocatingRequestTitle] = useState('');
 
   // ─── Data fetching ──────────────────────────────────────────────────────────
 
@@ -382,6 +386,14 @@ export default function NGODashboard() {
                   {profile?.city}, {profile?.state}
                 </span>
               </div>
+              <div className="mt-3">
+                <Link
+                  to="/ngo/resources"
+                  className="text-xs text-orange-500 hover:text-orange-700 font-medium border border-orange-200 bg-orange-50 px-3 py-1.5 rounded-lg inline-flex items-center gap-1"
+                >
+                  📦 Manage Inventory
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -410,11 +422,10 @@ export default function NGODashboard() {
           {/* Queue */}
           <button
             onClick={() => setTab('queue')}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
-              tab === 'queue'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'queue'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
           >
             Request Queue
             {queue.length > 0 && (
@@ -427,11 +438,10 @@ export default function NGODashboard() {
           {/* My Requests */}
           <button
             onClick={() => setTab('mine')}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
-              tab === 'mine'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'mine'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
           >
             My Requests
             {myRequests.length > 0 && (
@@ -444,11 +454,10 @@ export default function NGODashboard() {
           {/* Roster */}
           <button
             onClick={() => setTab('roster')}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
-              tab === 'roster'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'roster'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
           >
             Roster
             {roster.length > 0 && (
@@ -461,11 +470,10 @@ export default function NGODashboard() {
           {/* Join Requests */}
           <button
             onClick={() => setTab('join-requests')}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
-              tab === 'join-requests'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'join-requests'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
           >
             Join Requests
             {joinRequests.length > 0 && (
@@ -478,11 +486,10 @@ export default function NGODashboard() {
           {/* Interests */}
           <button
             onClick={() => setTab('interests')}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
-              tab === 'interests'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'interests'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
           >
             Interests
             {volunteerInterests.length > 0 && (
@@ -594,9 +601,8 @@ export default function NGODashboard() {
                         {CATEGORY_LABELS[req.category] ?? req.category}
                       </span>
                       <span
-                        className={`text-xs font-semibold ${
-                          URGENCY_COLORS[req.urgencyLevel] ?? 'text-gray-500'
-                        }`}
+                        className={`text-xs font-semibold ${URGENCY_COLORS[req.urgencyLevel] ?? 'text-gray-500'
+                          }`}
                       >
                         {URGENCY_LABELS[req.urgencyLevel] ?? req.urgencyLevel} urgency
                       </span>
@@ -650,9 +656,8 @@ export default function NGODashboard() {
                         {CATEGORY_LABELS[req.category] ?? req.category}
                       </span>
                       <span
-                        className={`text-xs font-semibold ${
-                          URGENCY_COLORS[req.urgencyLevel] ?? 'text-gray-500'
-                        }`}
+                        className={`text-xs font-semibold ${URGENCY_COLORS[req.urgencyLevel] ?? 'text-gray-500'
+                          }`}
                       >
                         {URGENCY_LABELS[req.urgencyLevel]} urgency
                       </span>
@@ -673,7 +678,19 @@ export default function NGODashboard() {
                           >
                             ↩ Return to Queue
                           </button>
+
+
                         )}
+
+                        <button
+                          onClick={() => {
+                            setAllocatingRequestId(req.id);
+                            setAllocatingRequestTitle(req.title);
+                          }}
+                          className="text-xs text-blue-600 hover:text-blue-800 font-medium border border-blue-200 bg-blue-50 px-3 py-1.5 rounded-lg"
+                        >
+                          Allocate Resources
+                        </button>
 
                         {/* Status update dropdown */}
                         <div className="flex items-center gap-2">
@@ -763,11 +780,10 @@ export default function NGODashboard() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                          entry.isActive
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-full ${entry.isActive
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-500'
+                          }`}
                       >
                         {entry.isActive ? 'Active' : 'Inactive'}
                       </span>
@@ -944,6 +960,17 @@ export default function NGODashboard() {
               </div>
             )}
           </>
+        )}
+
+        {allocatingRequestId && (
+          <AllocateResourceModal
+            requestId={allocatingRequestId}
+            requestTitle={allocatingRequestTitle}
+            onClose={() => {
+              setAllocatingRequestId(null);
+              setAllocatingRequestTitle('');
+            }}
+          />
         )}
 
       </main>
