@@ -9,6 +9,7 @@ import ngoRoutes from './modules/ngo/ngo.routes';
 import adminRoutes from './modules/admin/admin.routes';
 import volunteerRoutes from './modules/volunteers/volunteer.routes';
 import resourceRoutes from './modules/resources/resource.routes';
+import notificationRoutes from './modules/notifications/notification.routes';
 const app = express();
 
 app.use(helmet());
@@ -35,6 +36,7 @@ app.use('/api/v1/ngo', ngoRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/volunteers', volunteerRoutes);
 app.use('/api/v1/resources', resourceRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 app.use(errorHandler);
 

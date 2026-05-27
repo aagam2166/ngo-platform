@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import prisma from '../../config/prisma';
 import { AppError } from '../../middleware/errorHandler';
+import { createNotification } from '../notifications/notification.service';
 
 export const updateStatusSchema = z.object({
   status: z.enum(['UNDER_REVIEW', 'APPROVED', 'REJECTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']),
@@ -47,13 +48,22 @@ export const acceptRequest = async (requestId: string, userId: string) => {
   if (req.status !== 'PENDING') throw new AppError('Only PENDING requests can be accepted', 400);
   if (req.ngoId !== null) throw new AppError('This request has already been accepted by another NGO', 409);
 
-  return prisma.request.update({
+  const updated = await prisma.request.update({
     where: { id: requestId },
     data: { ngoId: ngo.id, status: 'UNDER_REVIEW' },
     include: {
       citizen: { select: { firstName: true, lastName: true, email: true } },
     },
   });
+
+  createNotification(
+    req.citizenId,
+    'REQUEST_ACCEPTED',
+    'Your Request Has Been Accepted',
+    `${ngo.name} has accepted your request "${req.title}" and is now reviewing it.`
+  ).catch(() => {});
+
+  return updated;
 };
 
 export const updateRequestStatus = async (
@@ -67,13 +77,33 @@ export const updateRequestStatus = async (
   if (!req) throw new AppError('Request not found', 404);
   if (req.ngoId !== ngo.id) throw new AppError('You can only update requests assigned to your NGO', 403);
 
-  return prisma.request.update({
+  const updated = await prisma.request.update({
     where: { id: requestId },
     data: { status: input.status },
     include: {
       citizen: { select: { firstName: true, lastName: true, email: true } },
     },
   });
+
+  const statusMessages: Record<string, string> = {
+    APPROVED: `Your request "${req.title}" has been approved and will be acted upon soon.`,
+    IN_PROGRESS: `Work has started on your request "${req.title}".`,
+    COMPLETED: `Your request "${req.title}" has been completed.`,
+    REJECTED: `Your request "${req.title}" was not able to be fulfilled.`,
+    CANCELLED: `Your request "${req.title}" has been cancelled.`,
+  };
+
+  const body = statusMessages[input.status];
+  if (body) {
+    createNotification(
+      req.citizenId,
+      'REQUEST_STATUS_UPDATED',
+      'Request Update',
+      body
+    ).catch(() => {});
+  }
+
+  return updated;
 };
 
 export const returnRequestToQueue = async (

@@ -1,5 +1,6 @@
 import prisma from '../../config/prisma';
 import { AppError } from '../../middleware/errorHandler';
+import { createNotification } from '../notifications/notification.service';
 
 // ── Volunteer sends a join request to an NGO ──────────────────────────────
 
@@ -136,7 +137,10 @@ export const approveJoinRequest = async (
 ) => {
   const joinRequest = await prisma.volunteerJoinRequest.findUnique({
     where: { id: requestId },
-    include: { volunteer: true },
+    include: {
+      volunteer: true,
+      ngo: { select: { name: true } },
+    },
   });
   if (!joinRequest) throw new AppError('Join request not found', 404);
   if (joinRequest.ngoId !== ngoId) throw new AppError('Forbidden', 403);
@@ -144,11 +148,17 @@ export const approveJoinRequest = async (
     throw new AppError('Only pending requests can be approved', 400);
   }
 
-  // Approve the request
   await prisma.volunteerJoinRequest.update({
     where: { id: requestId },
     data: { status: 'APPROVED', respondedAt: new Date() },
   });
+
+  createNotification(
+    joinRequest.volunteer.userId,
+    'JOIN_REQUEST_APPROVED',
+    'Join Request Approved',
+    `Your request to join ${joinRequest.ngo.name} has been approved. You are now on their roster.`
+  ).catch(() => {});
 
   // Add to roster (or reactivate)
   const existingMembership = await prisma.nGOVolunteer.findUnique({
@@ -199,6 +209,10 @@ export const rejectJoinRequest = async (
 ) => {
   const joinRequest = await prisma.volunteerJoinRequest.findUnique({
     where: { id: requestId },
+    include: {
+      volunteer: true,
+      ngo: { select: { name: true } },
+    },
   });
   if (!joinRequest) throw new AppError('Join request not found', 404);
   if (joinRequest.ngoId !== ngoId) throw new AppError('Forbidden', 403);
@@ -206,8 +220,17 @@ export const rejectJoinRequest = async (
     throw new AppError('Only pending requests can be rejected', 400);
   }
 
-  return prisma.volunteerJoinRequest.update({
+  const result = await prisma.volunteerJoinRequest.update({
     where: { id: requestId },
     data: { status: 'REJECTED', respondedAt: new Date() },
   });
+
+  createNotification(
+    joinRequest.volunteer.userId,
+    'JOIN_REQUEST_REJECTED',
+    'Join Request Declined',
+    `Your request to join ${joinRequest.ngo.name} was not accepted at this time.`
+  ).catch(() => {});
+
+  return result;
 };
