@@ -1,5 +1,6 @@
 import prisma from '../../config/prisma';
 import { AppError } from '../../middleware/errorHandler';
+import { createNotification } from '../notifications/notification.service';
 
 // ── Get requests a volunteer can express interest in ──────────────────────
 
@@ -187,7 +188,11 @@ export const approveInterest = async (
 ) => {
   const interest = await prisma.volunteerInterest.findUnique({
     where: { id: interestId },
-    include: { request: true },
+    include: {
+      request: true,
+      volunteer: true,
+      ngo: { select: { name: true } },
+    },
   });
   if (!interest) throw new AppError('Interest not found', 404);
   if (interest.ngoId !== ngoId) throw new AppError('Forbidden', 403);
@@ -247,6 +252,13 @@ export const approveInterest = async (
     data: { status: 'IN_PROGRESS' },
   });
 
+  createNotification(
+    interest.volunteer.userId,
+    'INTEREST_APPROVED',
+    'You Have Been Assigned',
+    `${interest.ngo.name} has assigned you to help with "${interest.request.title}".`
+  ).catch(() => {});
+
   return { ...assignment, isInternal };
 };
 
@@ -258,6 +270,11 @@ export const rejectInterest = async (
 ) => {
   const interest = await prisma.volunteerInterest.findUnique({
     where: { id: interestId },
+    include: {
+      volunteer: true,
+      request: { select: { title: true } },
+      ngo: { select: { name: true } },
+    },
   });
   if (!interest) throw new AppError('Interest not found', 404);
   if (interest.ngoId !== ngoId) throw new AppError('Forbidden', 403);
@@ -265,8 +282,17 @@ export const rejectInterest = async (
     throw new AppError('Only pending interests can be rejected', 400);
   }
 
-  return prisma.volunteerInterest.update({
+  const result = await prisma.volunteerInterest.update({
     where: { id: interestId },
     data: { status: 'REJECTED', respondedAt: new Date() },
   });
+
+  createNotification(
+    interest.volunteer.userId,
+    'INTEREST_REJECTED',
+    'Interest Not Accepted',
+    `${interest.ngo.name} could not accept your offer to help with "${interest.request.title}" at this time.`
+  ).catch(() => {});
+
+  return result;
 };
