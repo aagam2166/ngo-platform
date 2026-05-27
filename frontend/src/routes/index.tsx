@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store';
+import type { RootState } from '../store';
 import RoleRoute from './RoleRoute';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/auth/LoginPage';
@@ -10,7 +10,7 @@ import PrivateRoute from './PrivateRoute';
 import SubmitRequestPage from '../pages/citizen/SubmitRequestPage';
 import MyRequestsPage from '../pages/citizen/MyRequestsPage';
 import NGODashboard from '../pages/ngo/NGODashboard';
-import AdminPanel from '../pages/admin/AdminPanel';
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
 import VolunteerDashboardPage from '../pages/volunteer/VolunteerDashboardPage';
 import ResourcesPage from '../pages/ngo/ResourcesPage';
 
@@ -76,13 +76,11 @@ export default function AppRouter() {
         <Route
           path="/admin"
           element={
-            <PrivateRoute allowedRoles={['SUPER_ADMIN']}>
-              <AdminPanel />
-            </PrivateRoute>
+            <RoleRoute allowedRoles={['SUPER_ADMIN']}>
+              <AdminDashboardPage />
+            </RoleRoute>
           }
         />
-
-        <Route path="*" element={<Navigate to="/" replace />} />
         <Route
           path="/volunteer/dashboard"
           element={
@@ -100,6 +98,8 @@ export default function AppRouter() {
             </RoleRoute>
           }
         />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>
     </BrowserRouter>
