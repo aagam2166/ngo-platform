@@ -11,10 +11,13 @@ export const createRequest = async (citizenId: string, data: CreateRequestInput)
   });
 };
 
-export const getMyRequests = async (citizenId: string) => {
+export const getMyRequests = async (citizenId: string, status?: string ) => {
   return prisma.request.findMany({
-    where: { citizenId },
-    orderBy: { createdAt: 'desc' },
+    where: {
+      citizenId,
+      ...(status? {status: status as any} : {}),
+    },
+    orderBy: {createdAt: 'desc'},
   });
 };
 
@@ -38,17 +41,38 @@ export const getRequestById = async (id: string, userId: string, role: string) =
   return request;
 };
 
-export const getAllRequestsForNGO = async () => {
+export const getAllRequestsForNGO = async (filters: {
+  status?: string;
+  category?: string;
+  city?: string;
+  urgencyLevel?: number;
+  search?: string;
+}) => {
+  const where: any = {};
+
+  if (filters.status) {
+    where.status = filters.status;
+  } else {
+    where.status = { in: ['PENDING', 'UNDER_REVIEW', 'APPROVED', 'IN_PROGRESS'] };
+  }
+
+  if (filters.category) where.category = filters.category;
+  if (filters.city) where.city = { contains: filters.city };
+  if (filters.urgencyLevel) where.urgencyLevel = filters.urgencyLevel;
+
+  if (filters.search) {
+    where.OR = [
+      { title: { contains: filters.search } },
+      { description: { contains: filters.search } },
+    ];
+  }
+
   return prisma.request.findMany({
-    where: {
-      status: { in: ['PENDING', 'UNDER_REVIEW'] },
-    },
+    where,
     include: {
-      citizen: {
-        select: { firstName: true, lastName: true, email: true },
-      },
+      citizen: { select: { firstName: true, lastName: true, email: true } },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ urgencyLevel: 'desc' }, { createdAt: 'desc' }],
   });
 };
 

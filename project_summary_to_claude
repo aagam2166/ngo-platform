@@ -1,0 +1,535 @@
+# Smart NGO Resource Platform — Full Context Summary
+
+## Project Overview
+
+A full-stack monorepo web platform connecting **citizens in need** with **NGOs**. Citizens submit resource requests, NGOs review/fulfill them via a volunteer & resource management system, and a Super Admin oversees the entire platform.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19 + Vite + TypeScript + TailwindCSS v4 (via `@tailwindcss/vite`) + shadcn/ui |
+| Backend | Node.js + Express 5 + TypeScript |
+| Database | MySQL / MariaDB |
+| ORM | Prisma v7 with `@prisma/adapter-mariadb` (driver-adapter pattern — NOT the classic datasource URL pattern) |
+| Auth | JWT (jsonwebtoken, 7-day expiry) + bcryptjs (12 rounds) |
+| Validation | Zod v4 |
+| State (FE) | Redux Toolkit + localStorage persistence |
+| Testing | Jest + Supertest (integration tests) |
+| Dev server (BE) | ts-node-dev |
+| Dev server (FE) | Vite |
+
+---
+
+## Monorepo Folder Structure
+
+```
+ngo-platform/                          ← Monorepo root
+├── .gitignore
+├── README.md
+├── PROJECT_README.md                  ← Detailed legacy docs (partially outdated)
+├── package.json                       ← Root (minimal, workspace marker)
+├── package-lock.json
+├── prisma.config.ts                   ← Root-level Prisma config (reads DATABASE_URL for CLI)
+│
+├── prisma/                            ← (root-level, may be unused; schema lives in backend/prisma)
+│
+├── shared/                            ← Reserved for shared types (currently empty)
+│
+├── backend/
+│   ├── .env                           ← Local secrets (gitignored)
+│   ├── .env.example
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── tsconfig.test.json
+│   ├── jest.config.js
+│   ├── prisma.config.ts               ← Backend Prisma CLI config
+│   │
+│   ├── prisma/
+│   │   ├── schema.prisma              ← AUTHORITATIVE schema (10 models)
+│   │   ├── seed.ts                    ← Seed script (ts-node)
+│   │   └── migrations/
+│   │       ├── migration_lock.toml
+│   │       └── 20260512155310_init_day3/
+│   │           └── migration.sql
+│   │
+│   └── src/
+│       ├── server.ts                  ← Entry point, boots Express on PORT (default 3000)
+│       ├── app.ts                     ← Express app: middleware + all 7 route groups
+│       │
+│       ├── config/
+│       │   └── prisma.ts              ← Singleton PrismaClient (MariaDB adapter, pool=5)
+│       │
+│       ├── utils/
+│       │   ├── jwt.ts                 ← generateToken(payload) / verifyToken(token)
+│       │   └── apiResponse.ts         ← sendSuccess() / sendError() helpers
+│       │
+│       ├── middleware/
+│       │   ├── authenticate.ts        ← Validates Bearer JWT, attaches req.user {userId, role}
+│       │   ├── authorize.ts           ← Variadic role check: authorize('NGO_ADMIN','SUPER_ADMIN')
+│       │   ├── requireRole.ts         ← Same as authorize, used in ngo/admin routers
+│       │   ├── validate.ts            ← Zod body validator middleware
+│       │   └── errorHandler.ts        ← Global handler: AppError class + ZodError + catch-all
+│       │
+│       ├── modules/
+│       │   ├── auth/
+│       │   │   ├── auth.routes.ts
+│       │   │   ├── auth.controller.ts
+│       │   │   ├── auth.service.ts
+│       │   │   └── auth.schema.ts     ← registerSchema, loginSchema (Zod)
+│       │   │
+│       │   ├── requests/
+│       │   │   ├── request.routes.ts
+│       │   │   ├── request.controller.ts
+│       │   │   ├── request.service.ts
+│       │   │   └── request.schema.ts  ← createRequestSchema (Zod)
+│       │   │
+│       │   ├── ngo/
+│       │   │   ├── ngo.routes.ts
+│       │   │   ├── ngo.controller.ts
+│       │   │   └── ngo.service.ts
+│       │   │
+│       │   ├── admin/
+│       │   │   ├── admin.routes.ts
+│       │   │   ├── admin.controller.ts
+│       │   │   └── admin.service.ts
+│       │   │
+│       │   ├── volunteers/
+│       │   │   ├── volunteer.routes.ts            ← All volunteer endpoints (22 routes)
+│       │   │   ├── volunteer.controller.ts
+│       │   │   ├── volunteer.service.ts           ← Roster, assignment, discovery logic
+│       │   │   ├── volunteerJoinRequest.controller.ts
+│       │   │   ├── volunteerJoinRequest.service.ts
+│       │   │   ├── volunteerInterest.controller.ts
+│       │   │   └── volunteerInterest.service.ts
+│       │   │
+│       │   ├── resources/
+│       │   │   ├── resource.routes.ts
+│       │   │   ├── resource.controller.ts
+│       │   │   ├── resource.service.ts
+│       │   │   └── resource.schema.ts
+│       │   │
+│       │   └── notifications/
+│       │       ├── notification.routes.ts
+│       │       ├── notification.controller.ts
+│       │       └── notification.service.ts
+│       │
+│       └── __tests__/
+│           ├── auth.test.ts           ← 12 integration tests
+│           └── requests.test.ts       ← 13 integration tests
+│
+└── frontend/
+    ├── index.html
+    ├── vite.config.ts                 ← Vite + React plugin + @tailwindcss/vite plugin
+    ├── tsconfig.json / tsconfig.app.json / tsconfig.node.json
+    ├── eslint.config.js
+    ├── components.json                ← shadcn/ui config
+    ├── package.json
+    │
+    └── src/
+        ├── main.tsx                   ← React root, Redux <Provider>
+        ├── App.tsx                    ← Renders <AppRouter />
+        ├── index.css                  ← Global styles + Tailwind @import
+        │
+        ├── store/
+        │   ├── index.ts               ← configureStore({ auth })
+        │   └── authSlice.ts           ← setCredentials / logout reducers
+        │
+        ├── routes/
+        │   ├── index.tsx              ← BrowserRouter + all Route definitions
+        │   ├── PrivateRoute.tsx       ← Redirects unauthenticated → /login; wrong role → /dashboard
+        │   └── RoleRoute.tsx          ← Redirects wrong role → /dashboard
+        │
+        ├── components/
+        │   ├── StatusBadge.tsx
+        │   ├── layout/
+        │   │   └── Navbar.tsx
+        │   └── ui/                    ← shadcn/ui: button, card, input, label
+        │
+        └── pages/
+            ├── LandingPage.tsx
+            ├── Dashboard.tsx          ← Role-aware hub with quick-action links
+            ├── auth/
+            │   ├── LoginPage.tsx
+            │   └── RegisterPage.tsx
+            ├── citizen/
+            │   ├── SubmitRequestPage.tsx
+            │   └── MyRequestsPage.tsx
+            ├── ngo/
+            │   ├── NGODashboard.tsx   ← Queue, accept, status update, volunteer assign (~44 KB)
+            │   └── ResourcesPage.tsx  ← NGO resource inventory + allocation UI (~17 KB)
+            ├── volunteer/
+            │   └── VolunteerDashboardPage.tsx  ← Browse requests, interests, assignments (~25 KB)
+            └── admin/
+                └── AdminPanel.tsx
+```
+
+---
+
+## Database Schema (Prisma — `backend/prisma/schema.prisma`)
+
+> **Critical Prisma v7 note:** The `datasource db` block has NO `url` field (driver-adapter pattern). The MariaDB connection is passed programmatically via `PrismaMariaDb` adapter in `src/config/prisma.ts`. The `prisma.config.ts` files are only for CLI commands.
+
+### Enums
+```
+Role: CITIZEN | NGO_ADMIN | VOLUNTEER | SUPER_ADMIN
+RequestStatus: PENDING | UNDER_REVIEW | APPROVED | REJECTED | IN_PROGRESS | COMPLETED | CANCELLED
+```
+
+### Models (10 total)
+
+| Model | PK | Key Fields | Relations |
+|---|---|---|---|
+| `User` | uuid | email (unique), passwordHash, role, firstName, lastName, phone?, isActive, createdAt | → requests[], ngoProfile?, volunteerProfile?, notifications[] |
+| `NGO` | uuid | userId (unique FK→User CASCADE), name, registrationNo (unique), description?, address, city, state, isVerified (default false) | → requests[], resources[], volunteers[], joinRequests[], VolunteerInterests[], resourceAllocations[], VolunteerAssignments[] |
+| `Volunteer` | uuid | userId (unique FK→User CASCADE), skills (JSON?), bio?, isAvailable (default true) | → ngoMemberships[], assignments[], joinRequests[], interests[] |
+| `Request` | uuid | citizenId (FK→User), ngoId? (FK→NGO), title, description (Text), category, status (enum), urgencyLevel (Int, default 1), address/city/state, rejectionReason?, reviewedAt? | → assignments[], VolunteerInterests[], ResourceAllocations[] |
+| `Resource` | uuid | ngoId (FK→NGO), name, type, quantity (Float), unit?, description? | → allocations[] |
+| `VolunteerAssignment` | uuid | requestId + volunteerId (unique pair), ngoId, assignedBy (userId string), status (default "ASSIGNED"), notes? | Links Request ↔ Volunteer ↔ NGO |
+| `NGOVolunteer` | uuid | ngoId + volunteerId (unique pair), joinedAt, isActive (default true) | Roster join table |
+| `VolunteerJoinRequest` | uuid | volunteerId + ngoId (unique pair), message?, status (default "PENDING"), respondedAt? | Volunteer → NGO consent flow |
+| `VolunteerInterest` | uuid | volunteerId + requestId (unique pair), ngoId, message?, status (default "PENDING"), respondedAt? | Volunteer → specific Request interest flow |
+| `ResourceAllocation` | uuid | resourceId (FK→Resource RESTRICT), requestId (FK→Request CASCADE), ngoId, quantity (Float), notes?, allocatedBy | Tracks resource deductions per request |
+| `Notification` | uuid | userId (FK→User CASCADE), type, title, body, isRead (default false) | Per-user in-app notifications |
+
+---
+
+## API Endpoints — Complete Reference
+
+**Base URL:** `http://localhost:3000`
+**Auth header format:** `Authorization: Bearer <jwt_token>`
+**All responses:** `{ success: true, data: {...} }` or `{ success: false, message: "..." }`
+
+### Health
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/health` | None | Returns `{ status: "ok", message: "NGO API is running" }` |
+
+---
+
+### Auth — `/api/v1/auth`
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| POST | `/api/v1/auth/register` | None | Create user; body below |
+| POST | `/api/v1/auth/login` | None | Returns JWT; body below |
+| GET | `/api/v1/auth/me` | Bearer JWT (any role) | Returns user profile (no passwordHash) |
+
+**POST /register body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "min6chars",
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "role": "CITIZEN",
+  "phone": "+91...",
+  "ngoProfile": { "name":"...", "registrationNo":"...", "description":"...", "address":"...", "city":"...", "state":"..." },
+  "volunteerProfile": { "bio":"...", "skills":["Teaching"] }
+}
+```
+- `role` optional, defaults to `CITIZEN`. Only `CITIZEN | NGO_ADMIN | VOLUNTEER` allowed on register (SUPER_ADMIN cannot self-register).
+- `ngoProfile` required only if `role = NGO_ADMIN`.
+- `volunteerProfile` optional even for VOLUNTEER role.
+- Response `201`: `{ success: true, data: { user, token } }`
+
+**POST /login body:** `{ "email": "...", "password": "..." }`
+Response `200`: `{ success: true, data: { user, token } }`
+
+---
+
+### Requests — `/api/v1/requests`
+| Method | Path | Auth | Role | Notes |
+|---|---|---|---|---|
+| POST | `/api/v1/requests` | Bearer | Any authenticated | Create a help request |
+| GET | `/api/v1/requests/mine` | Bearer | Any authenticated | Own requests only |
+| GET | `/api/v1/requests/stats` | Bearer | NGO_ADMIN, SUPER_ADMIN | Counts by status |
+| GET | `/api/v1/requests` | Bearer | NGO_ADMIN, SUPER_ADMIN | All PENDING + UNDER_REVIEW |
+| GET | `/api/v1/requests/:id` | Bearer | Any authenticated | Citizens only see own; NGO/Admin see all |
+| PATCH | `/api/v1/requests/:id/status` | Bearer | NGO_ADMIN, SUPER_ADMIN | Update status |
+
+**POST /requests body:**
+```json
+{
+  "title": "...",         // min 5 chars
+  "description": "...",   // min 20 chars
+  "category": "FOOD",     // FOOD|MEDICAL|SHELTER|EDUCATION|CLOTHING|FINANCIAL|OTHER
+  "urgencyLevel": 5,      // 1–5, default 1
+  "address": "...",
+  "city": "...",
+  "state": "..."
+}
+```
+
+**PATCH /:id/status body:**
+```json
+{ "status": "APPROVED", "rejectionReason": "..." }
+```
+`rejectionReason` required only when `status = REJECTED`.
+
+**Stats response shape:**
+```json
+{ "PENDING":10, "UNDER_REVIEW":3, "APPROVED":5, "REJECTED":2, "IN_PROGRESS":1, "COMPLETED":8, "CANCELLED":0, "TOTAL":29 }
+```
+
+---
+
+### NGO — `/api/v1/ngo`
+> All routes: `Bearer JWT` + role `NGO_ADMIN`
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/v1/ngo/profile` | Own NGO org profile |
+| GET | `/api/v1/ngo/queue` | PENDING requests with no NGO assigned; sorted urgency desc, date asc |
+| GET | `/api/v1/ngo/my-requests` | All requests assigned to this NGO |
+| PATCH | `/api/v1/ngo/requests/:id/accept` | Accept PENDING → sets status `UNDER_REVIEW`, assigns ngoId |
+| PATCH | `/api/v1/ngo/requests/:id/status` | Update status of own NGO's request |
+| PATCH | `/api/v1/ngo/requests/:id/return` | Return (unassign) a request back to queue |
+
+---
+
+### Admin — `/api/v1/admin`
+> All routes: `Bearer JWT` + role `SUPER_ADMIN`
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/v1/admin/stats` | Platform-wide stats |
+| GET | `/api/v1/admin/ngos` | List all NGOs with user info and request count |
+| PATCH | `/api/v1/admin/ngos/:id/approve` | Set NGO `isVerified = true` |
+| PATCH | `/api/v1/admin/ngos/:id/revoke` | Set NGO `isVerified = false` |
+| GET | `/api/v1/admin/users` | List all users |
+| PATCH | `/api/v1/admin/users/:id/activate` | Set user `isActive = true` |
+| PATCH | `/api/v1/admin/users/:id/deactivate` | Set user `isActive = false` |
+
+---
+
+### Volunteers — `/api/v1/volunteers`
+
+#### Roster Management
+| Method | Path | Role | Notes |
+|---|---|---|---|
+| GET | `/api/v1/volunteers/roster` | NGO_ADMIN, SUPER_ADMIN | View NGO's volunteer roster |
+| DELETE | `/api/v1/volunteers/roster/:volunteerId` | NGO_ADMIN, SUPER_ADMIN | Remove volunteer (soft-delete, sets isActive=false) |
+| DELETE | `/api/v1/volunteers/roster/leave/:ngoId` | VOLUNTEER | Volunteer leaves an NGO |
+
+#### Join Request Flow (Volunteer → NGO consent)
+| Method | Path | Role | Notes |
+|---|---|---|---|
+| POST | `/api/v1/volunteers/join-requests` | VOLUNTEER | Send join request to an NGO |
+| GET | `/api/v1/volunteers/join-requests` | VOLUNTEER | Own outgoing join requests |
+| PATCH | `/api/v1/volunteers/join-requests/:id/withdraw` | VOLUNTEER | Withdraw a join request |
+| GET | `/api/v1/volunteers/join-requests/incoming` | NGO_ADMIN, SUPER_ADMIN | See incoming join requests |
+| PATCH | `/api/v1/volunteers/join-requests/:id/approve` | NGO_ADMIN, SUPER_ADMIN | Approve → adds to NGOVolunteer roster |
+| PATCH | `/api/v1/volunteers/join-requests/:id/reject` | NGO_ADMIN, SUPER_ADMIN | Reject join request |
+
+#### Interest Flow (Volunteer → specific Request)
+| Method | Path | Role | Notes |
+|---|---|---|---|
+| GET | `/api/v1/volunteers/open-requests` | VOLUNTEER | Browse open requests available to help with |
+| POST | `/api/v1/volunteers/interests/:requestId` | VOLUNTEER | Express interest in a request |
+| GET | `/api/v1/volunteers/interests` | VOLUNTEER | Own interest records |
+| PATCH | `/api/v1/volunteers/interests/:id/withdraw` | VOLUNTEER | Withdraw interest |
+| GET | `/api/v1/volunteers/interests/incoming` | NGO_ADMIN, SUPER_ADMIN | See volunteer interests for NGO's requests |
+| PATCH | `/api/v1/volunteers/interests/:id/approve` | NGO_ADMIN, SUPER_ADMIN | Approve → auto-creates VolunteerAssignment |
+| PATCH | `/api/v1/volunteers/interests/:id/reject` | NGO_ADMIN, SUPER_ADMIN | Reject interest |
+
+#### Discovery & Direct Assignment
+| Method | Path | Role | Notes |
+|---|---|---|---|
+| GET | `/api/v1/volunteers/for-assignment` | NGO_ADMIN, SUPER_ADMIN | Returns `{ internal: [...], external: [...], hasInternal }` |
+| GET | `/api/v1/volunteers` | SUPER_ADMIN | All available volunteers on platform |
+| POST | `/api/v1/volunteers/assign` | NGO_ADMIN, SUPER_ADMIN | Direct assign volunteer to request; moves request to IN_PROGRESS |
+| GET | `/api/v1/volunteers/assignments` | VOLUNTEER | Own assignments |
+| PATCH | `/api/v1/volunteers/assignments/:id` | VOLUNTEER | Update own assignment status (ASSIGNED→IN_PROGRESS→COMPLETED) |
+
+---
+
+### Resources — `/api/v1/resources`
+> All routes: `Bearer JWT` + role `NGO_ADMIN` or `SUPER_ADMIN`
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/v1/resources` | Create resource in NGO inventory |
+| GET | `/api/v1/resources` | List NGO's resources |
+| PATCH | `/api/v1/resources/:id` | Update resource details |
+| DELETE | `/api/v1/resources/:id` | Delete resource |
+| POST | `/api/v1/resources/:id/allocate` | Allocate quantity from resource to a request (deducts inventory) |
+| DELETE | `/api/v1/resources/allocations/:id` | Remove allocation (restores quantity) |
+| GET | `/api/v1/resources/request/:requestId/allocations` | All allocations for a specific request |
+
+---
+
+### Notifications — `/api/v1/notifications`
+> All routes: `Bearer JWT` (any authenticated user — own notifications only)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/v1/notifications` | Fetch own notifications |
+| GET | `/api/v1/notifications/unread-count` | Count of unread notifications |
+| PATCH | `/api/v1/notifications/read-all` | Mark all as read |
+| PATCH | `/api/v1/notifications/:id/read` | Mark single notification as read |
+
+---
+
+## Middleware Stack
+
+| Middleware | Purpose |
+|---|---|
+| `helmet` | Secure HTTP headers |
+| `cors` | Allows `localhost:*` and `127.0.0.1:*` origins only, `credentials: true` |
+| `morgan('dev')` | HTTP request logging |
+| `express.json()` | Parse JSON bodies |
+| `authenticate` | Verifies Bearer JWT, populates `req.user = { userId, role }` |
+| `authorize(...roles)` | Variadic role check — used in requests/volunteers/resources routers |
+| `requireRole(...roles)` | Same logic — used in ngo/admin routers |
+| `validate(schema)` | Parses `req.body` through a Zod schema; throws on failure |
+| `errorHandler` | Global: handles `AppError` (custom), `ZodError` (400), and unexpected errors (500) |
+
+---
+
+## Frontend Routes
+
+| Path | Component | Guard | Allowed Roles |
+|---|---|---|---|
+| `/` | `LandingPage` | None (public) | All |
+| `/login` | `LoginPage` | `PublicOnlyRoute` (redirect to /dashboard if already logged in) | Unauthenticated only |
+| `/register` | `RegisterPage` | `PublicOnlyRoute` | Unauthenticated only |
+| `/dashboard` | `Dashboard` | `PrivateRoute` | Any authenticated |
+| `/requests/new` | `SubmitRequestPage` | `PrivateRoute` | Any authenticated |
+| `/requests/mine` | `MyRequestsPage` | `PrivateRoute` | Any authenticated |
+| `/ngo/dashboard` | `NGODashboard` | `RoleRoute` | NGO_ADMIN, SUPER_ADMIN |
+| `/ngo/requests` | `NGODashboard` | `PrivateRoute` | NGO_ADMIN |
+| `/ngo/resources` | `ResourcesPage` | `RoleRoute` | NGO_ADMIN, SUPER_ADMIN |
+| `/volunteer/dashboard` | `VolunteerDashboardPage` | `RoleRoute` | VOLUNTEER |
+| `/admin` | `AdminPanel` | `PrivateRoute` | SUPER_ADMIN |
+| `*` | Redirect to `/` | — | — |
+
+### Route Guards
+- **`PrivateRoute`**: If `!isAuthenticated` → `/login`. If `allowedRoles` set and role doesn't match → `/dashboard`.
+- **`RoleRoute`**: If `!isAuthenticated` → `/login`. If role not in `allowedRoles` → `/dashboard`.
+- **`PublicOnlyRoute`** (inline in index.tsx): If `isAuthenticated` → `/dashboard`.
+
+---
+
+## Redux Auth State
+
+```ts
+// store/authSlice.ts
+interface AuthState {
+  user: { id: string; email: string; firstName: string; lastName: string; role: string } | null;
+  token: string | null;
+  isAuthenticated: boolean;
+}
+// Reducers:
+// setCredentials({ user, token }) — persists to localStorage
+// logout() — clears localStorage
+```
+Initial state is hydrated from `localStorage` (`token` and `user` keys) on page load.
+
+---
+
+## Prisma Client Pattern (CRITICAL)
+
+```ts
+// backend/src/config/prisma.ts
+import { PrismaClient } from '@prisma/client';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+
+const dbUrl = new URL(process.env.DATABASE_URL!);
+const adapter = new PrismaMariaDb({
+  host: dbUrl.hostname,
+  port: Number(dbUrl.port) || 3306,
+  user: decodeURIComponent(dbUrl.username),
+  password: decodeURIComponent(dbUrl.password),
+  database: dbUrl.pathname.replace('/', ''),
+  connectionLimit: 5,
+  allowPublicKeyRetrieval: true,
+});
+const prisma = new PrismaClient({ adapter });
+export default prisma;
+```
+**The `schema.prisma` datasource block has NO `url =` field.** This is required for Prisma v7 driver-adapter mode.
+
+---
+
+## Environment Variables
+
+File: `backend/.env` (copy from `backend/.env.example`)
+
+```env
+DATABASE_URL="mysql://root:yourpassword@localhost:3306/ngo_platform"
+JWT_SECRET="change-this-to-a-long-random-secret-min-32-chars"
+PORT=3000
+```
+
+---
+
+## NPM Scripts
+
+### Backend (`cd backend`)
+```bash
+npm run dev       # ts-node-dev --respawn --transpile-only src/server.ts
+npm run build     # tsc
+npm start         # node dist/server.js
+npm test          # jest --runInBand
+npm run seed      # ts-node --transpile-only prisma/seed.ts
+npm run db:push   # prisma db push
+```
+
+### Frontend (`cd frontend`)
+```bash
+npm run dev       # Vite dev server → http://localhost:5173
+npm run build     # Vite production build
+```
+
+---
+
+## Seed Data Credentials
+
+Run: `cd backend && npm run seed`
+
+| Role | Email | Password |
+|---|---|---|
+| SUPER_ADMIN | admin@ngoplatform.com | admin123 |
+| CITIZEN | rahul.sharma@example.com | citizen123 |
+| CITIZEN | priya.singh@example.com | citizen123 |
+| CITIZEN | arjun.nair@example.com | citizen123 |
+| NGO_ADMIN (verified) | meera@helpfoundation.org | ngo123 |
+| NGO_ADMIN (verified) | director@carekids.in | ngo123 |
+| VOLUNTEER | amit.kumar@volunteer.com | volunteer123 |
+| VOLUNTEER | sunita.joshi@volunteer.com | volunteer123 |
+
+Seed also creates 5 sample Requests in various statuses: PENDING, UNDER_REVIEW, APPROVED, COMPLETED, PENDING.
+
+---
+
+## Test Suite (Jest + Supertest)
+
+Location: `backend/src/__tests__/`
+
+- **`auth.test.ts`** — 12 integration tests covering register (citizen, NGO_ADMIN, VOLUNTEER, duplicates, validation), login (valid, wrong password, non-existent), and GET /me (valid, no token, tampered token).
+- **`requests.test.ts`** — 13 integration tests covering create request, GET /mine, GET /:id (ownership enforcement), GET / (NGO list), status filtering.
+- Tests self-clean: records with prefix `test_auth_` / `test_req_` are deleted in `afterAll`.
+- Run with: `cd backend && npm test` (`--runInBand` for sequential DB access)
+
+---
+
+## Key Architectural Decisions & Gotchas
+
+1. **Prisma v7 Driver-Adapter**: Connection passed to `PrismaClient({ adapter })`, not via schema. Root `prisma.config.ts` still needed for `prisma migrate` / `prisma db push` CLI commands to resolve `DATABASE_URL`.
+
+2. **Volunteer Consent Model**: Volunteers are NOT directly added to NGO rosters. Flow requires:
+   - Volunteer sends `VolunteerJoinRequest` → NGO approves → `NGOVolunteer` record created.
+   - For assignments: Volunteer expresses `VolunteerInterest` in a request → NGO approves → `VolunteerAssignment` auto-created.
+   - NGO can also do a direct assignment (`POST /volunteers/assign`) from existing roster members.
+
+3. **Resource Allocation**: Allocating a resource to a request deducts from `Resource.quantity`. Deallocating restores it.
+
+4. **Status Flow**: `PENDING → UNDER_REVIEW → APPROVED/REJECTED → IN_PROGRESS → COMPLETED/CANCELLED`
+
+5. **Unverified NGO**: `NGO.isVerified` starts as `false`. Only SUPER_ADMIN can approve/revoke. Unverified NGOs can still accept requests (no gating enforced yet in code).
+
+6. **`authorize` vs `requireRole`**: Both do the same thing (variadic role check). `authorize` is used in requests/volunteers/resources routers; `requireRole` in ngo/admin routers. This is a legacy naming difference.
+
+7. **Vite config** uses `@tailwindcss/vite` plugin (TailwindCSS v4 Vite integration), NOT the old PostCSS plugin. Also has `resolve.tsconfigPaths: true` for `@/` alias resolution.
