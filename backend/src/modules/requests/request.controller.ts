@@ -38,7 +38,8 @@ export const getMyRequestsHandler = async (
     next: NextFunction
 ) => {
     try {
-        const requests = await getMyRequests(req.user!.userId);
+        const {status} = req.query;
+        const requests = await getMyRequests(req.user!.userId, status as string);
         sendSuccess(res, requests);
     }
     catch (err) {
@@ -64,16 +65,19 @@ export const getOneRequestHandler = async (
     }
 };
 
-export const getAllRequestHandler = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-) => {
+export const getAllRequestsHandler = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        const requests = await getAllRequestsForNGO();
-        sendSuccess(res, requests);
+        const {status, category, city, urgencyLevel, search} = req.query;
+        const requests = await getAllRequestsForNGO({
+            status: status as string,
+            category: category as string,
+            city: city as string,
+            urgencyLevel: urgencyLevel ? Number(urgencyLevel) : undefined,
+            search: search as string,
+        });
+        sendSuccess(res,requests);
     }
-    catch (err) {
+    catch(err){
         next(err);
     }
 };

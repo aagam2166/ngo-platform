@@ -5,7 +5,7 @@ import {
   createRequestHandler,
   getMyRequestsHandler,
   getOneRequestHandler,
-  getAllRequestHandler,
+  getAllRequestsHandler,
   updateStatusHandler,
   getStatsHandler,
 } from './request.controller';
@@ -30,7 +30,7 @@ router.get(
   '/',
   authenticate,
   authorize('NGO_ADMIN', 'SUPER_ADMIN'),
-  getAllRequestHandler
+  getAllRequestsHandler
 );
 
 // Update status — NGO and Super Admin only
