@@ -13,6 +13,7 @@ import NGODashboard from '../pages/ngo/NGODashboard';
 import AdminPanel from '../pages/admin/AdminPanel';
 import VolunteerDashboardPage from '../pages/volunteer/VolunteerDashboardPage';
 import ResourcesPage from '../pages/ngo/ResourcesPage';
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
 
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useSelector((s: RootState) => s.auth);
@@ -60,6 +61,15 @@ export default function AppRouter() {
           element={
             <RoleRoute allowedRoles={['NGO_ADMIN', 'SUPER_ADMIN']}>
               <NGODashboard />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <RoleRoute allowedRoles={['SUPER_ADMIN']}>
+              <AdminDashboardPage />
             </RoleRoute>
           }
         />
