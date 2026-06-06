@@ -51,7 +51,7 @@ export default function Navbar() {
         </span>
       </Link>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1">
         {isAuthenticated && user ? (
           <>
             <Link
@@ -60,7 +60,44 @@ export default function Navbar() {
             >
               Dashboard
             </Link>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 rounded-lg">
+
+            {/* Citizen-specific nav */}
+            {user.role === 'CITIZEN' && (
+              <>
+                <Link
+                  to="/donate"
+                  className="text-sm text-orange-600 hover:text-orange-800 font-semibold px-3 py-2 rounded-md hover:bg-orange-50 transition-colors"
+                >
+                  🤝 Donate
+                </Link>
+                <Link
+                  to="/my-donations"
+                  className="text-sm text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                >
+                  My Donations
+                </Link>
+              </>
+            )}
+
+            {/* NGO Admin nav */}
+            {(user.role === 'NGO_ADMIN' || user.role === 'SUPER_ADMIN') && (
+              <>
+                <Link
+                  to="/ngo/donations"
+                  className="text-sm text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                >
+                  📥 Donations
+                </Link>
+                <Link
+                  to="/ngo/accounts"
+                  className="text-sm text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                >
+                  💰 Accounts
+                </Link>
+              </>
+            )}
+
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 rounded-lg ml-1">
               <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-bold">
                   {user.firstName.charAt(0).toUpperCase()}
@@ -140,4 +177,4 @@ export default function Navbar() {
       </div>
     </nav>
   );
-}
+}

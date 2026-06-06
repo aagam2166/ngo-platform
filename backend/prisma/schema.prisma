@@ -35,11 +35,13 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  requests         Request[]
-  ngoProfile       NGO?
-  volunteerProfile Volunteer?
-  notifications    Notification[]
-  comments         Comment[]
+  requests          Request[]
+  ngoProfile        NGO?
+  volunteerProfile  Volunteer?
+  notifications     Notification[]
+  comments          Comment[]
+  resourceDonations ResourceDonation[]
+  moneyDonations    MoneyDonation[]
 
   @@index([email])
   @@index([role])
@@ -59,13 +61,17 @@ model NGO {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  requests  Request[]
-  resources Resource[]
-  volunteers NGOVolunteer[]
+  requests             Request[]
+  resources            Resource[]
+  volunteers           NGOVolunteer[]
   VolunteerAssignments VolunteerAssignment[]
-  joinRequests VolunteerJoinRequest[]
-  VolunteerInterests VolunteerInterest[]
-  resourceAllocations ResourceAllocation[]
+  joinRequests         VolunteerJoinRequest[]
+  VolunteerInterests   VolunteerInterest[]
+  resourceAllocations  ResourceAllocation[]
+  resourceDonations    ResourceDonation[]
+  moneyDonations       MoneyDonation[]
+  account              NGOAccount?
+  expenses             NGOExpense[]
 }
 
 model Volunteer {
@@ -258,4 +264,67 @@ model Comment {
 
   @@index([requestId])
   @@index([authorId])
+}
+
+// ── Donation & Accounts ──────────────────────────────────────────────────────
+
+model ResourceDonation {
+  id          String    @id @default(uuid())
+  citizenId   String
+  citizen     User      @relation(fields: [citizenId], references: [id])
+  ngoId       String
+  ngo         NGO       @relation(fields: [ngoId], references: [id])
+  itemName    String
+  category    String
+  quantity    Float
+  unit        String?
+  description String?   @db.Text
+  status      String    @default("PENDING")
+  ngoNote     String?   @db.Text
+  respondedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([citizenId])
+  @@index([ngoId])
+  @@index([status])
+}
+
+model MoneyDonation {
+  id        String   @id @default(uuid())
+  citizenId String
+  citizen   User     @relation(fields: [citizenId], references: [id])
+  ngoId     String
+  ngo       NGO      @relation(fields: [ngoId], references: [id])
+  amount    Float
+  message   String?  @db.Text
+  status    String   @default("COMPLETED")
+  createdAt DateTime @default(now())
+
+  @@index([citizenId])
+  @@index([ngoId])
+}
+
+model NGOAccount {
+  id          String   @id @default(uuid())
+  ngoId       String   @unique
+  ngo         NGO      @relation(fields: [ngoId], references: [id])
+  balance     Float    @default(0)
+  totalRaised Float    @default(0)
+  totalSpent  Float    @default(0)
+  currency    String   @default("INR")
+  updatedAt   DateTime @updatedAt
+}
+
+model NGOExpense {
+  id          String   @id @default(uuid())
+  ngoId       String
+  ngo         NGO      @relation(fields: [ngoId], references: [id])
+  amount      Float
+  category    String
+  description String   @db.Text
+  recordedBy  String
+  createdAt   DateTime @default(now())
+
+  @@index([ngoId])
 }
