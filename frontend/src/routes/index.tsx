@@ -10,7 +10,6 @@ import PrivateRoute from './PrivateRoute';
 import SubmitRequestPage from '../pages/citizen/SubmitRequestPage';
 import MyRequestsPage from '../pages/citizen/MyRequestsPage';
 import NGODashboard from '../pages/ngo/NGODashboard';
-import AdminPanel from '../pages/admin/AdminPanel';
 import VolunteerDashboardPage from '../pages/volunteer/VolunteerDashboardPage';
 import ResourcesPage from '../pages/ngo/ResourcesPage';
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
@@ -68,38 +67,10 @@ export default function AppRouter() {
         />
 
         <Route
-          path="/admin"
-          element={
-            <RoleRoute allowedRoles={['SUPER_ADMIN']}>
-              <AdminDashboardPage />
-            </RoleRoute>
-          }
-        />
-
-        <Route
           path="/ngo/requests"
           element={
-            <PrivateRoute allowedRoles={['NGO_ADMIN']}>
+            <RoleRoute allowedRoles={['NGO_ADMIN', 'SUPER_ADMIN']}>
               <NGODashboard />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin"
-          element={
-            <PrivateRoute allowedRoles={['SUPER_ADMIN']}>
-              <AdminPanel />
-            </PrivateRoute>
-          }
-        />
-
-        <Route path="*" element={<Navigate to="/" replace />} />
-        <Route
-          path="/volunteer/dashboard"
-          element={
-            <RoleRoute allowedRoles={['VOLUNTEER']}>
-              <VolunteerDashboardPage />
             </RoleRoute>
           }
         />
@@ -112,6 +83,26 @@ export default function AppRouter() {
             </RoleRoute>
           }
         />
+
+        <Route
+          path="/admin"
+          element={
+            <RoleRoute allowedRoles={['SUPER_ADMIN']}>
+              <AdminDashboardPage />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/volunteer/dashboard"
+          element={
+            <RoleRoute allowedRoles={['VOLUNTEER']}>
+              <VolunteerDashboardPage />
+            </RoleRoute>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>
     </BrowserRouter>
