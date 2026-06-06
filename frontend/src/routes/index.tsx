@@ -9,11 +9,17 @@ import Dashboard from '../pages/Dashboard';
 import PrivateRoute from './PrivateRoute';
 import SubmitRequestPage from '../pages/citizen/SubmitRequestPage';
 import MyRequestsPage from '../pages/citizen/MyRequestsPage';
+import MyDonationsPage from '../pages/citizen/MyDonationsPage';
 import NGODashboard from '../pages/ngo/NGODashboard';
+import NGOAccountsPage from '../pages/ngo/NGOAccountsPage';
+import NGODonationsPage from '../pages/ngo/NGODonationsPage';
 import VolunteerDashboardPage from '../pages/volunteer/VolunteerDashboardPage';
 import ResourcesPage from '../pages/ngo/ResourcesPage';
-import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
+import AdminDashboardPage from '../pages/admin/adminDashboardPage';
 import RequestDetailPage from '../pages/citizen/RequestDetailPage';
+import DonatePage from '../pages/donate/DonatePage';
+import DonateResourcesPage from '../pages/donate/DonateResourcesPage';
+import DonateMoneyPage from '../pages/donate/DonateMoneyPage';
 
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useSelector((s: RootState) => s.auth);
@@ -57,6 +63,12 @@ export default function AppRouter() {
         <Route path="/requests/mine" element={<PrivateRoute><MyRequestsPage /></PrivateRoute>} />
         <Route path="/requests/:id" element={<PrivateRoute><RequestDetailPage /></PrivateRoute>} />
 
+        {/* Donation routes — any authenticated user */}
+        <Route path="/donate" element={<PrivateRoute><DonatePage /></PrivateRoute>} />
+        <Route path="/donate/resources" element={<PrivateRoute><DonateResourcesPage /></PrivateRoute>} />
+        <Route path="/donate/money" element={<PrivateRoute><DonateMoneyPage /></PrivateRoute>} />
+        <Route path="/my-donations" element={<PrivateRoute><MyDonationsPage /></PrivateRoute>} />
+
         <Route
           path="/ngo/dashboard"
           element={
@@ -80,6 +92,24 @@ export default function AppRouter() {
           element={
             <RoleRoute allowedRoles={['NGO_ADMIN', 'SUPER_ADMIN']}>
               <ResourcesPage />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/ngo/accounts"
+          element={
+            <RoleRoute allowedRoles={['NGO_ADMIN', 'SUPER_ADMIN']}>
+              <NGOAccountsPage />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/ngo/donations"
+          element={
+            <RoleRoute allowedRoles={['NGO_ADMIN', 'SUPER_ADMIN']}>
+              <NGODonationsPage />
             </RoleRoute>
           }
         />
