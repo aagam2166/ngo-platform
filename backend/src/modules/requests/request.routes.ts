@@ -8,8 +8,10 @@ import {
   getAllRequestsHandler,
   updateStatusHandler,
   getStatsHandler,
+  cancelRequestHandler,
+  addCommentHandler,
+  deleteCommentHandler,
 } from './request.controller';
-import { cancelRequestHandler } from './request.controller';
 
 const router = Router();
 
@@ -49,5 +51,8 @@ router.patch(
   authenticate,
   cancelRequestHandler
 );
+
+router.post('/:id/comments', authenticate, addCommentHandler);
+router.delete('/:id/comments/:commentId', authenticate, deleteCommentHandler);
 
 export default router;

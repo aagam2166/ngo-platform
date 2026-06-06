@@ -528,6 +528,12 @@ export default function NGODashboard() {
                         <p className="text-xs text-gray-400 mt-2">
                           {req.city}, {req.state} · {formatDate(req.createdAt)}
                         </p>
+                        <Link
+                          to={`/requests/${req.id}`}
+                          className="text-xs text-orange-500 hover:text-orange-700 font-medium mt-1 inline-block"
+                        >
+                          View Details →
+                        </Link>
                       </div>
                       <div className="flex gap-2 flex-shrink-0">
                         <button
@@ -646,6 +652,12 @@ export default function NGODashboard() {
                         <p className="text-xs text-gray-400 mt-0.5">
                           {req.city}, {req.state} · Updated {formatDate(req.updatedAt)}
                         </p>
+                        <Link
+                          to={`/requests/${req.id}`}
+                          className="text-xs text-orange-500 hover:text-orange-700 font-medium mt-0.5 inline-block"
+                        >
+                          View Details →
+                        </Link>
                       </div>
                       <StatusBadge status={req.status} />
                     </div>

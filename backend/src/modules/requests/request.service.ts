@@ -1,14 +1,14 @@
 import prisma from '../../config/prisma';
 import { AppError } from '../../middleware/errorHandler';
 import { CreateRequestInput } from './request.schema';
+import { logStatus } from '../../utils/logStatus';
 
 export const createRequest = async (citizenId: string, data: CreateRequestInput) => {
-  return prisma.request.create({
-    data: {
-      ...data,
-      citizenId,
-    },
+  const request = await prisma.request.create({
+    data: { ...data, citizenId },
   });
+  logStatus(request.id, 'PENDING', citizenId, 'Request submitted').catch(() => {});
+  return request;
 };
 
 export const getMyRequests = async (citizenId: string, status?: string ) => {
@@ -26,14 +26,37 @@ export const getRequestById = async (id: string, userId: string, role: string) =
     where: { id },
     include: {
       citizen: {
-        select: { firstName: true, lastName: true, email: true },
+        select: { id: true, firstName: true, lastName: true, email: true, phone: true },
+      },
+      ngo: {
+        select: { id: true, name: true, city: true, state: true, isVerified: true },
+      },
+      assignments: {
+        include: {
+          volunteer: {
+            include: {
+              user: { select: { firstName: true, lastName: true, email: true } },
+            },
+          },
+        },
+        orderBy: { assignedAt: 'desc' },
+      },
+      statusLogs: {
+        orderBy: { createdAt: 'asc' },
+      },
+      comments: {
+        include: {
+          author: {
+            select: { id: true, firstName: true, lastName: true, role: true },
+          },
+        },
+        orderBy: { createdAt: 'asc' },
       },
     },
   });
 
   if (!request) throw new AppError('Request not found', 404);
 
-  // Citizens can only see their own requests
   if (role === 'CITIZEN' && request.citizenId !== userId) {
     throw new AppError('You are not allowed to view this request', 403);
   }
@@ -102,7 +125,7 @@ export const updateRequestStatus = async (
     throw new AppError('Rejection reason is required when rejecting a request', 400);
   }
 
-  return prisma.request.update({
+  const updated = await prisma.request.update({
     where: { id: requestId },
     data: {
       status: status as any,
@@ -116,6 +139,9 @@ export const updateRequestStatus = async (
       },
     },
   });
+
+  logStatus(requestId, status, ngoId, rejectionReason).catch(() => {});
+  return updated;
 };
 
 export const getRequestStats = async (ngoId?: string) => {
@@ -163,8 +189,10 @@ export const cancelRequest = async (requestId: string, userId: string) => {
     );
   }
 
-  return prisma.request.update({
+  const updated = await prisma.request.update({
     where: { id: requestId },
     data: { status: 'CANCELLED' },
   });
+  logStatus(requestId, 'CANCELLED', userId, 'Cancelled by citizen').catch(() => {});
+  return updated;
 };
