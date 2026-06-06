@@ -160,9 +160,12 @@ export default function MyRequestsPage() {
                   <span className={`text-xs font-semibold ${URGENCY_COLORS[req.urgencyLevel] ?? 'text-gray-500'}`}>
                     Urgency {req.urgencyLevel}/5
                   </span>
-                  <span className="text-xs text-gray-300 ml-auto font-mono">
-                    #{req.id.slice(0, 8)}
-                  </span>
+                  <Link
+                    to={`/requests/${req.id}`}
+                    className="text-xs text-orange-500 hover:text-orange-700 font-medium ml-auto"
+                  >
+                    View Details →
+                  </Link>
                 </div>
 
                 {/* Dynamic Cancel Block — only for PENDING requests */}

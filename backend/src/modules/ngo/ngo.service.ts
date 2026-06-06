@@ -2,6 +2,7 @@ import { z } from 'zod';
 import prisma from '../../config/prisma';
 import { AppError } from '../../middleware/errorHandler';
 import { createNotification } from '../notifications/notification.service';
+import { logStatus } from '../../utils/logStatus';
 
 export const updateStatusSchema = z.object({
   status: z.enum(['UNDER_REVIEW', 'APPROVED', 'REJECTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']),
@@ -63,6 +64,8 @@ export const acceptRequest = async (requestId: string, userId: string) => {
     `${ngo.name} has accepted your request "${req.title}" and is now reviewing it.`
   ).catch(() => {});
 
+  logStatus(requestId, 'UNDER_REVIEW', ngo.id, `Accepted by ${ngo.name}`).catch(() => {});
+
   return updated;
 };
 
@@ -103,6 +106,8 @@ export const updateRequestStatus = async (
     ).catch(() => {});
   }
 
+  logStatus(req.id, input.status, ngo.id).catch(() => {});
+
   return updated;
 };
 
@@ -128,12 +133,12 @@ export const returnRequestToQueue = async (
     );
   }
 
-  return prisma.request.update({
+  const returned = await prisma.request.update({
     where: { id: requestId },
-    data: {
-      status: 'PENDING',
-      ngoId: null,
-      reviewedAt: null,
-    },
+    data: { status: 'PENDING', ngoId: null, reviewedAt: null },
   });
+
+  logStatus(requestId, 'PENDING', profile.id, 'Returned to queue by NGO').catch(() => {});
+
+  return returned;
 };

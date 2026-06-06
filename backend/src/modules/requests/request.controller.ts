@@ -7,15 +7,13 @@ import {
     getRequestById,
     getAllRequestsForNGO,
     cancelRequest,
-} from './request.service'
+    updateRequestStatus,
+    getRequestStats,
+} from './request.service';
+import { addComment, deleteComment } from './comment.service';
 import { AppError } from '../../middleware/errorHandler';
 import prisma from '../../config/prisma';
-
-
 import { sendSuccess } from '../../utils/apiResponse';
-import { request } from 'node:http';
-import { updateRequestStatus, getRequestStats } from './request.service';
-import { send } from 'node:process';
 
 export const createRequestHandler = async (
     req: AuthRequest,
@@ -157,5 +155,32 @@ export const cancelRequestHandler = async (
   try {
     const updated = await cancelRequest(req.params.id as string, req.user!.userId);
     sendSuccess(res, updated);
+  } catch (err) { next(err); }
+};
+
+export const addCommentHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const comment = await addComment(
+      req.params.id as string,
+      req.user!.userId,
+      req.user!.role,
+      req.body.body
+    );
+    sendSuccess(res, comment, 201);
+  } catch (err) { next(err); }
+};
+
+export const deleteCommentHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const result = await deleteComment(req.params.commentId as string, req.user!.userId);
+    sendSuccess(res, result);
   } catch (err) { next(err); }
 };

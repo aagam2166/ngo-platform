@@ -14,6 +14,7 @@ import AdminPanel from '../pages/admin/AdminPanel';
 import VolunteerDashboardPage from '../pages/volunteer/VolunteerDashboardPage';
 import ResourcesPage from '../pages/ngo/ResourcesPage';
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
+import RequestDetailPage from '../pages/citizen/RequestDetailPage';
 
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useSelector((s: RootState) => s.auth);
@@ -55,6 +56,7 @@ export default function AppRouter() {
 
         <Route path="/requests/new" element={<PrivateRoute><SubmitRequestPage /></PrivateRoute>} />
         <Route path="/requests/mine" element={<PrivateRoute><MyRequestsPage /></PrivateRoute>} />
+        <Route path="/requests/:id" element={<PrivateRoute><RequestDetailPage /></PrivateRoute>} />
 
         <Route
           path="/ngo/dashboard"
