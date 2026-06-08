@@ -4,6 +4,7 @@ import StatusBadge from '../../components/StatusBadge';
 import api from '../../lib/api';
 import AllocateResourceModal from '../../components/AllocateResourceModal';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Citizen {
@@ -127,12 +128,10 @@ export default function NGODashboard() {
           api.get('/ngo/queue'),
           api.get('/ngo/my-requests'),
         ]);
-        // Handle null profile for new NGO users
-        setProfile(profileRes.data.data || null);
-        setQueue(queueRes.data.data || []);
-        setMyRequests(mineRes.data.data || []);
-      } catch (err) {
-        // Only show error if it's an actual API error, not empty data
+        setProfile(profileRes.data.data);
+        setQueue(queueRes.data.data);
+        setMyRequests(mineRes.data.data);
+      } catch {
         setError('Failed to load dashboard data. Please refresh.');
       } finally {
         setLoading(false);
@@ -189,7 +188,7 @@ export default function NGODashboard() {
       setQueue((prev) => prev.filter((r) => r.id !== requestId));
       setMyRequests((prev) => [accepted, ...prev]);
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to accept request.');
+      (err?.response?.data?.message ?? 'Failed to accept request.');
     } finally {
       setAccepting(null);
     }
@@ -215,7 +214,7 @@ export default function NGODashboard() {
         return next;
       });
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to reject request.');
+      toast.error(err?.response?.data?.message ?? 'Failed to reject request.');
     } finally {
       setSubmittingReject(null);
     }
@@ -238,7 +237,7 @@ export default function NGODashboard() {
         return next;
       });
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to update status.');
+      toast.error(err?.response?.data?.message ?? 'Failed to update status.');
     } finally {
       setUpdatingStatus(null);
     }
@@ -250,7 +249,7 @@ export default function NGODashboard() {
       await api.patch(`/ngo/requests/${requestId}/return`);
       await fetchMyRequests();
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to return request');
+      toast.error(err?.response?.data?.message ?? 'Failed to return request');
     }
   };
 
@@ -262,7 +261,7 @@ export default function NGODashboard() {
       await api.delete(`/volunteers/roster/${volunteerId}`);
       setRoster((prev) => prev.filter((v) => v.volunteerId !== volunteerId));
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to remove volunteer');
+      toast.error(err?.response?.data?.message ?? 'Failed to remove volunteer');
     } finally {
       setActionId(null);
     }
@@ -274,7 +273,7 @@ export default function NGODashboard() {
       await api.patch(`/volunteers/join-requests/${id}/approve`);
       setJoinRequests((prev) => prev.filter((r) => r.id !== id));
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to approve');
+      toast.error(err?.response?.data?.message ?? 'Failed to approve');
     } finally {
       setActionId(null);
     }
@@ -286,7 +285,7 @@ export default function NGODashboard() {
       await api.patch(`/volunteers/join-requests/${id}/reject`);
       setJoinRequests((prev) => prev.filter((r) => r.id !== id));
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to reject');
+      toast.error(err?.response?.data?.message ?? 'Failed to reject');
     } finally {
       setActionId(null);
     }
@@ -298,7 +297,7 @@ export default function NGODashboard() {
       await api.patch(`/volunteers/interests/${id}/approve`);
       setVolunteerInterests((prev) => prev.filter((i) => i.id !== id));
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to approve');
+      toast.error(err?.response?.data?.message ?? 'Failed to approve');
     } finally {
       setActionId(null);
     }
@@ -310,7 +309,7 @@ export default function NGODashboard() {
       await api.patch(`/volunteers/interests/${id}/reject`);
       setVolunteerInterests((prev) => prev.filter((i) => i.id !== id));
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to reject');
+      toast.error(err?.response?.data?.message ?? 'Failed to reject');
     } finally {
       setActionId(null);
     }

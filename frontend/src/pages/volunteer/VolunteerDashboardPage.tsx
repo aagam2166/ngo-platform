@@ -112,7 +112,7 @@ export default function VolunteerDashboardPage() {
       await api.patch(`/volunteers/assignments/${id}`, { status });
       await fetchData('assignments');
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to update');
+      toast.error(err?.response?.data?.message ?? 'Failed to update');
     } finally {
       setUpdatingId(null);
     }
@@ -127,7 +127,7 @@ export default function VolunteerDashboardPage() {
       setOpenRequests((prev) => prev.filter((r) => r.id !== requestId));
       setInterestMessages((prev) => { const n = { ...prev }; delete n[requestId]; return n; });
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to express interest');
+      toast.error(err?.response?.data?.message ?? 'Failed to express interest');
     } finally {
       setSubmittingInterest(null);
     }
@@ -139,7 +139,7 @@ export default function VolunteerDashboardPage() {
       await api.patch(`/volunteers/interests/${id}/withdraw`);
       await fetchData('interests');
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to withdraw');
+      toast.error(err?.response?.data?.message ?? 'Failed to withdraw');
     } finally {
       setUpdatingId(null);
     }
@@ -151,7 +151,7 @@ export default function VolunteerDashboardPage() {
       await api.patch(`/volunteers/join-requests/${id}/withdraw`);
       await fetchData('memberships');
     } catch (err: any) {
-      alert(err?.response?.data?.message ?? 'Failed to withdraw');
+      toast.error(err?.response?.data?.message ?? 'Failed to withdraw');
     } finally {
       setUpdatingId(null);
     }

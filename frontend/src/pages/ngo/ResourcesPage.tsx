@@ -95,7 +95,7 @@ export default function ResourcesPage() {
       setEditingId(null);
       await fetchResources();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to update');
+      a(err.response?.data?.message || 'Failed to update');
     } finally {
       setSavingEdit(false);
     }
