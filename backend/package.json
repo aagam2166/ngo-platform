@@ -15,6 +15,9 @@
   "prisma": {
     "seed": "ts-node --transpile-only prisma/seed.ts"
   },
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
