@@ -5,7 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `volunteerassignment` ADD COLUMN `ngoId` VARCHAR(191) NOT NULL;
+ALTER TABLE `VolunteerAssignment` ADD COLUMN `ngoId` VARCHAR(191) NOT NULL;
 
 -- CreateTable
 CREATE TABLE `NGOVolunteer` (

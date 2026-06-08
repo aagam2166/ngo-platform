@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/layout/Navbar';
 import api from '../../lib/api';
-
+import toast from 'react-hot-toast' 
 interface Resource {
   id: string;
   name: string;
@@ -95,7 +95,7 @@ export default function ResourcesPage() {
       setEditingId(null);
       await fetchResources();
     } catch (err: any) {
-      a(err.response?.data?.message || 'Failed to update');
+      toast.error(err.response?.data?.message || 'Failed to update');
     } finally {
       setSavingEdit(false);
     }

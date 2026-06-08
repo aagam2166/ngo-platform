@@ -5,5 +5,5 @@
 
 */
 -- AlterTable
-ALTER TABLE `request` DROP COLUMN `reviewdAt`,
+ALTER TABLE `Request` DROP COLUMN `reviewdAt`,
     ADD COLUMN `reviewedAt` DATETIME(3) NULL;
