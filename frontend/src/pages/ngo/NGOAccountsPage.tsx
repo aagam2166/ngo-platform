@@ -131,7 +131,7 @@ export default function NGOAccountsPage() {
       <Navbar />
 
       {/* Page header */}
-      <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-6 py-10">
+      <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-6 pt-14 pb-16">
         <div className="max-w-5xl mx-auto">
           <p className="text-slate-400 text-sm mb-1">{overview?.ngo.name}</p>
           <h1 className="text-3xl font-extrabold mb-1">Financial Accounts</h1>
@@ -139,7 +139,7 @@ export default function NGOAccountsPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 -mt-6 pb-12">
+      <div className="max-w-5xl mx-auto px-4 -mt-8 pb-12">
 
         {/* Stats cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -164,7 +164,7 @@ export default function NGOAccountsPage() {
 
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 max-w-xs">
-          {(['overview', 'history'] as const).map(t => (
+          { (['overview', 'history'] as const).map(t => (
             <button
               key={t}
               onClick={() => handleTabChange(t)}
@@ -185,7 +185,10 @@ export default function NGOAccountsPage() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <h2 className="font-bold text-gray-900 mb-4">Recent Donations</h2>
               {overview?.recentDonations.length === 0 ? (
-                <p className="text-sm text-gray-400">No donations received yet.</p>
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mb-2 font-mono text-lg font-bold">↓</div>
+                  <p className="text-sm text-gray-400">No donations received yet.</p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {overview?.recentDonations.map(d => (
@@ -207,12 +210,12 @@ export default function NGOAccountsPage() {
             {/* Record expense form */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <h2 className="font-bold text-gray-900 mb-4">Record Expense</h2>
-              <form onSubmit={handleExpenseSubmit} className="space-y-3">
+              <form onSubmit={handleExpenseSubmit} className="space-y-4">
                 {/* Amount */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Amount *</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold text-sm">₹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold text-sm">₹</span>
                     <input
                       type="number"
                       min="1"
@@ -220,11 +223,11 @@ export default function NGOAccountsPage() {
                       value={expenseForm.amount}
                       onChange={e => setExpenseForm(f => ({ ...f, amount: e.target.value }))}
                       placeholder="0"
-                      className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2.5 text-sm outline-none focus:border-orange-400"
+                      className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 bg-white text-gray-900 transition-all"
                     />
                   </div>
                   {acct && (
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-400 mt-1.5">
                       Available balance: <span className="font-semibold text-green-600">{fmt(acct.balance)}</span>
                     </p>
                   )}
@@ -232,11 +235,11 @@ export default function NGOAccountsPage() {
 
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Category *</label>
                   <select
                     value={expenseForm.category}
                     onChange={e => setExpenseForm(f => ({ ...f, category: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-orange-400 bg-white"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 bg-white text-gray-900 transition-all"
                   >
                     {EXPENSE_CATEGORIES.map(c => (
                       <option key={c} value={c}>{c.charAt(0) + c.slice(1).toLowerCase()}</option>
@@ -246,23 +249,23 @@ export default function NGOAccountsPage() {
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Description *</label>
                   <textarea
                     rows={2}
                     value={expenseForm.description}
                     onChange={e => setExpenseForm(f => ({ ...f, description: e.target.value }))}
                     placeholder="What was this expense for?"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-orange-400 resize-none"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 resize-none bg-white text-gray-900 transition-all"
                   />
                 </div>
 
-                {expenseError && <p className="text-xs text-red-500">{expenseError}</p>}
-                {expenseSuccess && <p className="text-xs text-green-600">{expenseSuccess}</p>}
+                {expenseError && <p className="text-xs text-red-500 font-medium">{expenseError}</p>}
+                {expenseSuccess && <p className="text-xs text-green-600 font-medium">{expenseSuccess}</p>}
 
                 <button
                   type="submit"
                   disabled={submittingExpense}
-                  className="w-full bg-slate-700 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold py-2.5 rounded-xl text-sm transition-colors"
+                  className="w-full bg-slate-700 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold py-2.5 rounded-xl text-sm transition-colors shadow-sm"
                 >
                   {submittingExpense ? 'Recording…' : 'Record Expense'}
                 </button>
@@ -279,15 +282,14 @@ export default function NGOAccountsPage() {
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="divide-y divide-gray-50">
-                {/* Merge and sort donations + expenses by date */}
+              <div className="divide-y divide-gray-100">
                 {[
                   ...(history?.donations ?? []).map(d => ({
                     id: d.id,
                     type: 'donation' as const,
                     amount: d.amount,
                     label: `${d.citizen.firstName} ${d.citizen.lastName}`,
-                    sub: d.message ? `"${d.message}"` : 'Donation',
+                    sub: d.message ? `"${d.message}"` : 'Donation Received',
                     date: d.createdAt,
                   })),
                   ...(history?.expenses ?? []).map(e => ({
@@ -301,12 +303,16 @@ export default function NGOAccountsPage() {
                 ]
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map(item => (
-                    <div key={`${item.type}-${item.id}`} className="flex items-center justify-between px-5 py-4">
+                    <div key={`${item.type}-${item.id}`} className="flex items-center justify-between px-5 py-4 hover:bg-slate-50/50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg ${
-                          item.type === 'donation' ? 'bg-green-50' : 'bg-red-50'
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+                          item.type === 'donation' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
                         }`}>
-                          {item.type === 'donation' ? '💚' : '📤'}
+                          {item.type === 'donation' ? (
+                            <span className="text-xs font-bold font-mono">IN</span>
+                          ) : (
+                            <span className="text-xs font-bold font-mono">OUT</span>
+                          )}
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-gray-900">{item.label}</p>

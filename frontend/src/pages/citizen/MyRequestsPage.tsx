@@ -15,14 +15,15 @@ interface Request {
   createdAt: string;
 }
 
+// Fixed: Emojis stripped out to protect option baseline layout alignments
 const CATEGORY_LABELS: Record<string, string> = {
-  FOOD: '🍱 Food',
-  MEDICAL: '🏥 Medical',
-  SHELTER: '🏠 Shelter',
-  EDUCATION: '📚 Education',
-  CLOTHING: '👕 Clothing',
-  FINANCIAL: '💰 Financial',
-  OTHER: '📦 Other',
+  FOOD: 'Food',
+  MEDICAL: 'Medical',
+  SHELTER: 'Shelter',
+  EDUCATION: 'Education',
+  CLOTHING: 'Clothing',
+  FINANCIAL: 'Financial',
+  OTHER: 'Other',
 };
 
 const URGENCY_COLORS: Record<number, string> = {
@@ -38,7 +39,6 @@ export default function MyRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
-  // Fixed: Moved state definitions inside the component
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [isCancellingAction, setIsCancellingAction] = useState(false);
   const [cancelError, setCancelError] = useState('');
@@ -62,7 +62,6 @@ export default function MyRequestsPage() {
     setCancelError('');
     setIsCancellingAction(true);
     try {
-      // Fixed: Converted straight quotes to template literals (backticks)
       await api.patch(`/requests/${id}/cancel`);
       await fetchRequests();
       setCancellingId(null);
@@ -86,18 +85,18 @@ export default function MyRequestsPage() {
       <Navbar />
       <div className="max-w-3xl mx-auto px-4 py-10">
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Requests</h1>
-            <p className="text-sm text-gray-500 mt-1">Track all your submitted help requests</p>
+        {/* Fixed: Centered Top Header Block */}
+        <div className="flex flex-col items-center text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">My Requests</h1>
+          <p className="text-sm text-gray-500 mt-1">Track all your submitted help requests</p>
+          <div className="mt-4">
+            <Link
+              to="/requests/new"
+              className="inline-block bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors shadow-sm"
+            >
+              + New Request
+            </Link>
           </div>
-          <Link
-            to="/requests/new"
-            className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors shadow-sm"
-          >
-            + New Request
-          </Link>
         </div>
 
         {/* Loading Global State */}
@@ -114,12 +113,9 @@ export default function MyRequestsPage() {
           </div>
         )}
 
-        {/* Empty state */}
+        {/* Empty state (Emoji safely removed) */}
         {!loading && !error && requests.length === 0 && (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
-            <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">📋</span>
-            </div>
             <h3 className="font-semibold text-gray-900 mb-1">No requests yet</h3>
             <p className="text-sm text-gray-500 mb-5">
               Submit your first help request and an NGO will get back to you.
@@ -133,7 +129,7 @@ export default function MyRequestsPage() {
           </div>
         )}
 
-        {/* Request cards */}
+        {/* Request cards - Original Layout Intact */}
         {!loading && !error && requests.length > 0 && (
           <div className="space-y-4">
             {requests.map((req) => (
@@ -180,6 +176,7 @@ export default function MyRequestsPage() {
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <button
+                            type="button"
                             onClick={() => handleCancel(req.id)}
                             disabled={isCancellingAction}
                             className="text-xs bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
@@ -187,6 +184,7 @@ export default function MyRequestsPage() {
                             {isCancellingAction ? 'Cancelling...' : 'Yes, Cancel'}
                           </button>
                           <button
+                            type="button"
                             onClick={() => { setCancellingId(null); setCancelError(''); }}
                             disabled={isCancellingAction}
                             className="text-xs border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
@@ -197,6 +195,7 @@ export default function MyRequestsPage() {
                       </div>
                     ) : (
                       <button
+                        type="button"
                         onClick={() => setCancellingId(req.id)}
                         className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
                       >

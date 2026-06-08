@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { RootState } from '../../store';
 import { logout } from '../../store/authSlice';
 import api from '../../lib/api';
+import { Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Notification {
@@ -17,8 +18,8 @@ interface Notification {
 
 const TYPE_STYLES: Record<string, string> = {
   SUCCESS: 'border-l-2 border-green-400 bg-green-50',
-  ERROR:   'border-l-2 border-red-400 bg-red-50',
-  INFO:    'bg-white',
+  ERROR: 'border-l-2 border-red-400 bg-red-50',
+  INFO: 'bg-white',
 };
 
 export default function Navbar() {
@@ -39,19 +40,19 @@ export default function Navbar() {
     }
     api.get('/notifications/unread-count')
       .then((res) => setUnreadCount(res.data.data.count))
-      .catch(() => {});
+      .catch(() => { });
   }, [isAuthenticated]);
 
   // Poll for new notifications every 30 seconds
   useEffect(() => {
     if (!isAuthenticated) return;
-    
+
     const interval = setInterval(() => {
       api.get('/notifications/unread-count')
         .then((res) => setUnreadCount(res.data.data.count))
-        .catch(() => {});
+        .catch(() => { });
     }, 30000); // Check every 30 seconds
-    
+
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 
@@ -143,9 +144,10 @@ export default function Navbar() {
               <>
                 <Link
                   to="/donate"
-                  className="text-sm text-orange-600 hover:text-orange-800 font-semibold px-3 py-2 rounded-md hover:bg-orange-50 transition-colors"
+                  className="inline-flex items-center gap-2 text-sm bg-orange-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors shadow-sm"
                 >
-                  🤝 Donate
+                  <Heart size={16} fill="currentColor" />
+                  Donate
                 </Link>
                 <Link
                   to="/my-donations"
@@ -163,13 +165,13 @@ export default function Navbar() {
                   to="/ngo/donations"
                   className="text-sm text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
                 >
-                  📥 Donations
+                  Donations
                 </Link>
                 <Link
                   to="/ngo/accounts"
                   className="text-sm text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
                 >
-                  💰 Accounts
+                  Accounts
                 </Link>
               </>
             )}
@@ -198,11 +200,10 @@ export default function Navbar() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={openNotifications}
-                className={`relative p-2 rounded-lg transition-colors ${
-                  unreadCount > 0 
-                    ? 'text-red-500 bg-red-50 hover:bg-red-100' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className={`relative p-2 rounded-lg transition-colors ${unreadCount > 0
+                  ? 'text-red-500 bg-red-50 hover:bg-red-100'
+                  : 'text-gray-600 hover:bg-gray-100'
+                  }`}
                 aria-label="Notifications"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
@@ -260,9 +261,8 @@ export default function Navbar() {
                       notifications.map((n) => (
                         <div
                           key={n.id}
-                          className={`px-4 py-3 border-b border-gray-50 last:border-0 ${
-                            !n.isRead ? (TYPE_STYLES[n.type] ?? 'bg-orange-50') : ''
-                          }`}
+                          className={`px-4 py-3 border-b border-gray-50 last:border-0 ${!n.isRead ? (TYPE_STYLES[n.type] ?? 'bg-orange-50') : ''
+                            }`}
                         >
                           <div className="flex items-start justify-between gap-2">
                             <p className="text-sm font-medium text-gray-900 leading-snug">
