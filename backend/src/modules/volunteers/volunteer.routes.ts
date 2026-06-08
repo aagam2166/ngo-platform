@@ -16,6 +16,7 @@ import {
 // Join request handlers
 import {
   sendJoinRequestHandler,
+  searchNGOsHandler,
   getMyJoinRequestsHandler,
   withdrawJoinRequestHandler,
   leaveNGORosterHandler,
@@ -66,6 +67,14 @@ router.post(
   authenticate,
   authorize('VOLUNTEER'),
   sendJoinRequestHandler
+);
+
+// Volunteer searches NGOs by name and city
+router.get(
+  '/ngos/search',
+  authenticate,
+  authorize('VOLUNTEER'),
+  searchNGOsHandler
 );
 
 // Volunteer sees their own join requests

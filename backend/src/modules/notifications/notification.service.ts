@@ -47,3 +47,9 @@ export const markAllAsRead = async (userId: string) => {
   });
   return { message: 'All notifications marked as read' };
 };
+
+export const clearAllNotifications = async (userId: string) => {
+  return prisma.notification.deleteMany({ where: { userId } });
+};
+
+

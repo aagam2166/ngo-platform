@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import Navbar from '../../components/layout/Navbar';
 import StatusBadge from '../../components/StatusBadge';
 import api from '../../lib/api';
+import { useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast'
 
 type Tab = 'assignments' | 'open-requests' | 'interests' | 'memberships';
 
@@ -37,7 +39,12 @@ const INTEREST_STATUS_STYLES: Record<string, string> = {
 };
 
 export default function VolunteerDashboardPage() {
-  const [tab, setTab] = useState<Tab>('assignments');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(() => {
+    const t = searchParams.get('tab') as Tab;
+    const validTabs: Tab[] = ['assignments', 'open-requests', 'interests', 'memberships'];
+    return validTabs.includes(t) ? t : 'assignments';
+  });
   const [assignments, setAssignments] = useState<any[]>([]);
   const [openRequests, setOpenRequests] = useState<any[]>([]);
   const [interests, setInterests] = useState<any[]>([]);
@@ -52,10 +59,21 @@ export default function VolunteerDashboardPage() {
 
   // Join NGO state
   const [showJoinForm, setShowJoinForm] = useState(false);
-  const [joinNgoId, setJoinNgoId] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchCity, setSearchCity] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [selectedNgoId, setSelectedNgoId] = useState('');
   const [joinMessage, setJoinMessage] = useState('');
   const [submittingJoin, setSubmittingJoin] = useState(false);
   const [joinError, setJoinError] = useState('');
+
+  const changeTab = (newTab: Tab) => {
+    setTab(newTab);
+    setSearchParams({ tab: newTab });
+  };
+
+
 
   const fetchData = async (currentTab: Tab) => {
     setLoading(true);
@@ -139,21 +157,59 @@ export default function VolunteerDashboardPage() {
     }
   };
 
+  const handleLeaveNGO = async (ngoId: string) => {
+    if (!window.confirm('Leave this NGO? You can re-apply later.')) return;
+    setUpdatingId(ngoId);
+    try {
+      await api.delete(`/volunteers/roster/leave/${ngoId}`);
+      toast.success('You have left the NGO');
+      // Refetch memberships to ensure UI updates correctly
+      await fetchData('memberships');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Failed to leave NGO');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const searchNGOs = async (name: string, city: string) => {
+    if (!name.trim() && !city.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setSearchLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (name.trim()) params.append('name', name);
+      if (city.trim()) params.append('city', city);
+      const res = await api.get(`/volunteers/ngos/search?${params.toString()}`);
+      setSearchResults(res.data.data);
+    } catch (err: any) {
+      toast.error('Failed to search NGOs');
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   const handleSendJoinRequest = async () => {
-    if (!joinNgoId.trim()) {
-      setJoinError('Please enter an NGO ID');
+    if (!selectedNgoId.trim()) {
+      setJoinError('Please select an NGO');
       return;
     }
     setSubmittingJoin(true);
     setJoinError('');
     try {
       await api.post('/volunteers/join-requests', {
-        ngoId: joinNgoId.trim(),
+        ngoId: selectedNgoId.trim(),
         message: joinMessage.trim() || null,
       });
       setShowJoinForm(false);
-      setJoinNgoId('');
+      setSearchQuery('');
+      setSearchCity('');
+      setSelectedNgoId('');
       setJoinMessage('');
+      setSearchResults([]);
       await fetchData('memberships');
     } catch (err: any) {
       setJoinError(err?.response?.data?.message ?? 'Failed to send join request');
@@ -187,21 +243,19 @@ export default function VolunteerDashboardPage() {
           {tabs.map((t) => (
             <button
               key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
-                tab === t.key
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              onClick={() => changeTab(t.key)}
+              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === t.key
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+                }`}
             >
               {t.label}
               {t.count != null && t.count > 0 && (
-                <span className={`ml-2 text-white text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                  t.key === 'assignments' ? 'bg-purple-500' :
+                <span className={`ml-2 text-white text-xs font-bold px-1.5 py-0.5 rounded-full ${t.key === 'assignments' ? 'bg-purple-500' :
                   t.key === 'open-requests' ? 'bg-orange-500' :
-                  t.key === 'interests' ? 'bg-blue-500' :
-                  'bg-yellow-500'
-                }`}>
+                    t.key === 'interests' ? 'bg-blue-500' :
+                      'bg-yellow-500'
+                  }`}>
                   {t.count}
                 </span>
               )}
@@ -263,9 +317,8 @@ export default function VolunteerDashboardPage() {
                           </div>
                         )}
                       </div>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
-                        ASSIGNMENT_STATUS_STYLES[a.status] ?? 'bg-gray-100 text-gray-600'
-                      }`}>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${ASSIGNMENT_STATUS_STYLES[a.status] ?? 'bg-gray-100 text-gray-600'
+                        }`}>
                         {a.status.replace('_', ' ')}
                       </span>
                     </div>
@@ -394,9 +447,8 @@ export default function VolunteerDashboardPage() {
                           </div>
                         )}
                       </div>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
-                        INTEREST_STATUS_STYLES[interest.status] ?? 'bg-gray-100 text-gray-500'
-                      }`}>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${INTEREST_STATUS_STYLES[interest.status] ?? 'bg-gray-100 text-gray-500'
+                        }`}>
                         {interest.status}
                       </span>
                     </div>
@@ -441,23 +493,89 @@ export default function VolunteerDashboardPage() {
             {/* Join form */}
             {showJoinForm && (
               <div className="bg-white rounded-xl border border-orange-100 shadow-sm p-5 mb-4">
-                <h3 className="font-semibold text-gray-900 mb-3">Apply to Join an NGO</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">Search & Apply to Join an NGO</h3>
                 <div className="space-y-3">
                   <div>
                     <label className="text-sm font-medium text-gray-700 block mb-1">
-                      NGO ID
+                      Search by NGO Name
                     </label>
                     <input
                       type="text"
-                      value={joinNgoId}
-                      onChange={(e) => setJoinNgoId(e.target.value)}
-                      placeholder="Paste the NGO's ID here"
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        searchNGOs(e.target.value, searchCity);
+                      }}
+                      placeholder="Enter NGO name…"
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-orange-400 bg-white text-gray-900"
                     />
-                    <p className="text-xs text-gray-400 mt-1">
-                      Ask the NGO admin for their ID, or find it in the NGO directory.
-                    </p>
                   </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">
+                      Filter by City (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={searchCity}
+                      onChange={(e) => {
+                        setSearchCity(e.target.value);
+                        searchNGOs(searchQuery, e.target.value);
+                      }}
+                      placeholder="Enter city name…"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-orange-400 bg-white text-gray-900"
+                    />
+                  </div>
+
+                  {/* Search Results */}
+                  {searchLoading && (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+
+                  {!searchLoading && searchResults.length > 0 && (
+                    <div className="border border-gray-200 rounded-lg max-h-48 overflow-y-auto">
+                      {searchResults.map((ngo) => (
+                        <button
+                          key={ngo.id}
+                          onClick={() => {
+                            setSelectedNgoId(ngo.id);
+                            setSearchQuery('');
+                            setSearchCity('');
+                            setSearchResults([]);
+                          }}
+                          className={`w-full text-left px-3 py-2.5 border-b border-gray-100 last:border-0 hover:bg-orange-50 transition-colors ${
+                            selectedNgoId === ngo.id ? 'bg-orange-100 border-l-2 border-l-orange-500' : ''
+                          }`}
+                        >
+                          <p className="font-medium text-gray-900 text-sm">{ngo.name}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{ngo.city}, {ngo.state}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {!searchLoading && searchResults.length === 0 && (searchQuery.trim() || searchCity.trim()) && (
+                    <p className="text-xs text-gray-400 text-center py-4">No NGOs found. Try different search terms.</p>
+                  )}
+
+                  {selectedNgoId && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                      <p className="text-sm font-medium text-orange-900">
+                        ✓ Selected:{' '}
+                        {searchResults.find((n) => n.id === selectedNgoId)?.name ||
+                          'NGO'}
+                      </p>
+                      <button
+                        onClick={() => setSelectedNgoId('')}
+                        className="text-xs text-orange-600 hover:text-orange-700 font-medium mt-2"
+                      >
+                        Change Selection
+                      </button>
+                    </div>
+                  )}
+
                   <div>
                     <label className="text-sm font-medium text-gray-700 block mb-1">
                       Message (optional)
@@ -477,7 +595,7 @@ export default function VolunteerDashboardPage() {
                   )}
                   <button
                     onClick={handleSendJoinRequest}
-                    disabled={submittingJoin || !joinNgoId.trim()}
+                    disabled={submittingJoin || !selectedNgoId.trim()}
                     className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2.5 rounded-lg transition-colors"
                   >
                     {submittingJoin ? 'Sending…' : 'Send Application'}
@@ -523,9 +641,8 @@ export default function VolunteerDashboardPage() {
                           <p className="text-xs text-gray-500 mt-1 italic">"{req.message}"</p>
                         )}
                       </div>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
-                        JOIN_STATUS_STYLES[req.status] ?? 'bg-gray-100 text-gray-500'
-                      }`}>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${JOIN_STATUS_STYLES[req.status] ?? 'bg-gray-100 text-gray-500'
+                        }`}>
                         {req.status}
                       </span>
                     </div>
@@ -541,9 +658,20 @@ export default function VolunteerDashboardPage() {
                       </div>
                     )}
                     {req.status === 'APPROVED' && (
-                      <p className="text-xs text-green-600 font-medium mt-2">
-                        ✅ You are an active member of this NGO
-                      </p>
+                      <div className="mt-3 pt-2 border-t border-gray-50 flex items-center justify-between">
+                        <p className="text-xs text-green-600 font-medium">
+                          ✅ Active member
+                        </p>
+                        <button
+                          onClick={() => handleLeaveNGO(req.ngoId)}
+                          disabled={updatingId === req.ngoId}
+                          className="text-xs text-red-500 hover:text-red-700 font-medium
+                 border border-red-200 bg-red-50 px-3 py-1 rounded-lg
+                 hover:bg-red-100 transition-colors disabled:opacity-50"
+                        >
+                          {updatingId === req.ngoId ? 'Leaving…' : 'Leave NGO'}
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}

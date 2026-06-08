@@ -5,6 +5,7 @@ import { AppError } from '../../middleware/errorHandler';
 import prisma from '../../config/prisma';
 import {
   sendJoinRequest,
+  searchVerifiedNGOs,
   getMyJoinRequests,
   withdrawJoinRequest,
   leaveNGORoster,
@@ -25,6 +26,19 @@ export const sendJoinRequestHandler = async (
     if (!ngoId) return next(new AppError('ngoId is required', 400));
     const result = await sendJoinRequest(req.user!.userId, ngoId, message);
     sendSuccess(res, result, 201);
+  } catch (err) { next(err); }
+};
+
+export const searchNGOsHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const name = req.query.name as string | undefined;
+    const city = req.query.city as string | undefined;
+    const ngos = await searchVerifiedNGOs(name, city);
+    sendSuccess(res, ngos);
   } catch (err) { next(err); }
 };
 
