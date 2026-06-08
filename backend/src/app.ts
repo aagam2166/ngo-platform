@@ -14,12 +14,17 @@ import donationRoutes from './modules/donations/donation.routes';
 const app = express();
 
 app.use(helmet());
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('CORS: origin not allowed'));
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
