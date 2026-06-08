@@ -101,7 +101,8 @@ export const searchVerifiedNGOs = async (
 
 export const getMyJoinRequests = async (userId: string) => {
   const volunteer = await prisma.volunteer.findUnique({ where: { userId } });
-  if (!volunteer) throw new AppError('Volunteer profile not found', 404);
+  // Return empty array if volunteer profile doesn't exist yet
+  if (!volunteer) return [];
 
   const requests = await prisma.volunteerJoinRequest.findMany({
     where: { volunteerId: volunteer.id },

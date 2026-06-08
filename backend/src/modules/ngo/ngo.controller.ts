@@ -16,13 +16,17 @@ export const getProfileHandler = async (req: AuthRequest, res: Response, next: N
     const profile = await getMyProfile(req.user!.userId);
     sendSuccess(res, profile);
   } catch (err) {
-    next(err);
+    // For new NGO users without a profile yet, return null instead of error
+    sendSuccess(res, null);
   }
 };
 
 export const getQueueHandler = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const requests = await getRequestQueue();
+    if(!requests){
+      return [];
+    }
     sendSuccess(res, requests);
   } catch (err) {
     next(err);

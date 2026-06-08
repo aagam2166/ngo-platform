@@ -2,53 +2,40 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCredentials } from '../store/authSlice';
 import { RootState } from '../store';
+import api from '../lib/api';
 
-const MOCK_USERS = {
-  CITIZEN: {
-    id: 'dev-citizen-001',
-    email: 'citizen@dev.local',
-    firstName: 'Dev',
-    lastName: 'Citizen',
-    role: 'CITIZEN',
-  },
-  VOLUNTEER: {
-    id: 'dev-volunteer-001',
-    email: 'volunteer@dev.local',
-    firstName: 'Dev',
-    lastName: 'Volunteer',
-    role: 'VOLUNTEER',
-  },
-  NGO_ADMIN: {
-    id: 'dev-ngo-001',
-    email: 'ngo@dev.local',
-    firstName: 'Dev',
-    lastName: 'NGO Admin',
-    role: 'NGO_ADMIN',
-  },
-  SUPER_ADMIN: {
-    id: 'dev-admin-001',
-    email: 'admin@dev.local',
-    firstName: 'Dev',
-    lastName: 'Super Admin',
-    role: 'SUPER_ADMIN',
-  },
-};
-
-const MOCK_TOKEN = 'dev-token-' + Math.random().toString(36).substring(2, 15);
+const ROLE_OPTIONS = ['CITIZEN', 'VOLUNTEER', 'NGO_ADMIN', 'SUPER_ADMIN'] as const;
 
 export default function DevTools() {
   const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch();
   const { user } = useSelector((s: RootState) => s.auth);
 
-  const switchRole = (role: keyof typeof MOCK_USERS) => {
-    const mockUser = MOCK_USERS[role];
-    dispatch(
-      setCredentials({
-        user: mockUser,
-        token: MOCK_TOKEN,
-      })
-    );
+  const switchRole = async (role: typeof ROLE_OPTIONS[number]) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Call backend dev login endpoint to get a real JWT token
+      const response = await api.post('/auth/dev-login', { role });
+      const { user: devUser, token } = response.data.data;
+
+      // Update Redux with real token and user data
+      dispatch(
+        setCredentials({
+          user: devUser,
+          token,
+        })
+      );
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to switch role';
+      setError(errorMsg);
+      console.error('Dev login failed:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,8 +51,9 @@ export default function DevTools() {
                 : 'bg-purple-500 hover:bg-purple-600'
             } text-white font-bold text-lg`}
             title="Dev Tools"
+            disabled={loading}
           >
-            ⚙️
+            {loading ? '⏳' : '⚙️'}
           </button>
 
           {/* Dev Tools Panel */}
@@ -81,20 +69,29 @@ export default function DevTools() {
                 </p>
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-300 rounded-lg p-3 text-xs">
+                  <p className="text-red-900 font-bold">❌ Error:</p>
+                  <p className="text-red-800 mt-1">{error}</p>
+                </div>
+              )}
+
               {/* Role Buttons */}
               <div className="space-y-2">
-                {Object.entries(MOCK_USERS).map(([roleKey, mockUser]) => (
+                {ROLE_OPTIONS.map((roleKey) => (
                   <button
                     key={roleKey}
-                    onClick={() => switchRole(roleKey as keyof typeof MOCK_USERS)}
-                    className={`w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${
-                      user?.role === mockUser.role
+                    onClick={() => switchRole(roleKey)}
+                    disabled={loading}
+                    className={`w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left disabled:opacity-50 ${
+                      user?.role === roleKey
                         ? 'bg-purple-600 text-white border border-purple-700 shadow-md'
                         : 'bg-purple-50 text-purple-900 border border-purple-200 hover:bg-purple-100'
                     }`}
                   >
                     <span className="font-bold">{roleKey}</span>
-                    <p className="text-xs opacity-75 mt-0.5">{mockUser.email}</p>
+                    <p className="text-xs opacity-75 mt-0.5">{roleKey.toLowerCase()}@dev.local</p>
                   </button>
                 ))}
               </div>
@@ -118,9 +115,9 @@ export default function DevTools() {
                 <p className="font-bold text-blue-900 mb-2">💡 How to Use:</p>
                 <ol className="list-decimal list-inside space-y-1 text-blue-800">
                   <li>Click any role button above</li>
-                  <li>Redux state updates instantly</li>
-                  <li>No API calls needed</li>
-                  <li>Navigate to test different role pages</li>
+                  <li>Gets real JWT token from backend</li>
+                  <li>All API calls now work</li>
+                  <li>Navigate to test different role features</li>
                   <li>Refresh page to reset</li>
                 </ol>
               </div>
@@ -129,7 +126,7 @@ export default function DevTools() {
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs">
                 <p className="font-bold text-yellow-900 mb-1">⚠️ Dev Only:</p>
                 <p className="text-yellow-800">
-                  This tool only appears in development mode. It won't show in production.
+                  This tool only works in development mode and requires the backend /auth/dev-login endpoint.
                 </p>
               </div>
 

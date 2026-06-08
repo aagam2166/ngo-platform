@@ -127,10 +127,12 @@ export default function NGODashboard() {
           api.get('/ngo/queue'),
           api.get('/ngo/my-requests'),
         ]);
-        setProfile(profileRes.data.data);
-        setQueue(queueRes.data.data);
-        setMyRequests(mineRes.data.data);
-      } catch {
+        // Handle null profile for new NGO users
+        setProfile(profileRes.data.data || null);
+        setQueue(queueRes.data.data || []);
+        setMyRequests(mineRes.data.data || []);
+      } catch (err) {
+        // Only show error if it's an actual API error, not empty data
         setError('Failed to load dashboard data. Please refresh.');
       } finally {
         setLoading(false);

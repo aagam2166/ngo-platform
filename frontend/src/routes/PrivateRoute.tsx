@@ -12,7 +12,7 @@ export default function PrivateRoute({ children, allowedRoles }: PrivateRoutePro
 
   // Not logged in at all — send to login
   if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // Logged in but wrong role — send back to dashboard

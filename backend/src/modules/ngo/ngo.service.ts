@@ -16,6 +16,11 @@ const getNGOByUserId = async (userId: string) => {
   return ngo;
 };
 
+// Helper for GET operations - returns null instead of throwing
+const getNGOByUserIdForRead = async (userId: string) => {
+  return prisma.nGO.findFirst({ where: { userId } });
+};
+
 export const getMyProfile = async (userId: string) => {
   return getNGOByUserId(userId);
 };
@@ -31,7 +36,9 @@ export const getRequestQueue = async () => {
 };
 
 export const getMyNGORequests = async (userId: string) => {
-  const ngo = await getNGOByUserId(userId);
+  const ngo = await getNGOByUserIdForRead(userId);
+  // Return empty array if NGO profile doesn't exist yet
+  if (!ngo) return [];
   return prisma.request.findMany({
     where: { ngoId: ngo.id },
     include: {

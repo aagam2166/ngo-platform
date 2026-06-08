@@ -56,14 +56,15 @@ interface RequestDetail {
   comments: Comment[];
 }
 
+// Fixed: Emojis stripped out to protect clean layout presentation lines
 const CATEGORY_LABELS: Record<string, string> = {
-  FOOD: '🍱 Food',
-  MEDICAL: '🏥 Medical',
-  SHELTER: '🏠 Shelter',
-  EDUCATION: '📚 Education',
-  CLOTHING: '👕 Clothing',
-  FINANCIAL: '💰 Financial',
-  OTHER: '📦 Other',
+  FOOD: 'Food',
+  MEDICAL: 'Medical',
+  SHELTER: 'Shelter',
+  EDUCATION: 'Education',
+  CLOTHING: 'Clothing',
+  FINANCIAL: 'Financial',
+  OTHER: 'Other',
 };
 
 const URGENCY_LABELS: Record<number, string> = {
@@ -375,6 +376,7 @@ export default function RequestDetailPage() {
                       <span className="text-xs text-gray-400">{formatDateTime(c.createdAt)}</span>
                       {c.author.id === user?.id && (
                         <button
+                          type="button"
                           onClick={() => handleDeleteComment(c.id)}
                           disabled={deletingCommentId === c.id}
                           className="text-xs text-red-400 hover:text-red-600 disabled:opacity-50"
@@ -403,6 +405,7 @@ export default function RequestDetailPage() {
               <p className="text-xs text-red-500 mt-1">{commentError}</p>
             )}
             <button
+              type="button"
               onClick={handleAddComment}
               disabled={!commentBody.trim() || submittingComment}
               className="mt-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-colors"

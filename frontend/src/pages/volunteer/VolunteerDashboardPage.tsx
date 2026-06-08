@@ -8,9 +8,9 @@ import toast from 'react-hot-toast'
 type Tab = 'assignments' | 'open-requests' | 'interests' | 'memberships';
 
 const CATEGORY_LABELS: Record<string, string> = {
-  FOOD: '🍱 Food', MEDICAL: '🏥 Medical', SHELTER: '🏠 Shelter',
-  EDUCATION: '📚 Education', CLOTHING: '👕 Clothing',
-  FINANCIAL: '💰 Financial', OTHER: '📦 Other',
+  FOOD: 'Food', MEDICAL: 'Medical', SHELTER: 'Shelter',
+  EDUCATION: 'Education', CLOTHING: 'Clothing',
+  FINANCIAL: 'Financial', OTHER: 'Other',
 };
 
 const URGENCY_COLORS: Record<number, string> = {
@@ -406,7 +406,7 @@ export default function VolunteerDashboardPage() {
                         disabled={submittingInterest === req.id}
                         className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
                       >
-                        {submittingInterest === req.id ? 'Sending…' : '🙋 I Want to Help'}
+                        {submittingInterest === req.id ? 'Sending…' : 'I can to Help'}
                       </button>
                     </div>
                   </div>

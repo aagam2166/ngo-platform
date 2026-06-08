@@ -6,10 +6,9 @@ import {
   AllocateResourceInput,
 } from './resource.schema';
 
-// Helper — get NGO profile or throw
+// Helper — get NGO profile or return null (for GET operations)
 const getNGOProfile = async (userId: string) => {
   const profile = await prisma.nGO.findUnique({ where: { userId } });
-  if (!profile) throw new AppError('NGO profile not found', 404);
   return profile;
 };
 
@@ -17,7 +16,12 @@ const getNGOProfile = async (userId: string) => {
 // INVENTORY CRUD
 // ─────────────────────────────────────────────
 
+
+
 export const createResource = async (userId: string, data: CreateResourceInput) => {
+  // For write operations, require the profile to exist
+  const profile = await prisma.nGO.findUnique({ where: { userId } });
+  if (!profile) throw new AppError('NGO profile not found', 404);
   const ngo = await getNGOProfile(userId);
   return prisma.resource.create({
     data: { ...data, ngoId: ngo.id },
@@ -26,6 +30,7 @@ export const createResource = async (userId: string, data: CreateResourceInput) 
 
 export const getNGOResources = async (userId: string) => {
   const ngo = await getNGOProfile(userId);
+  if(!ngo) return [];
   return prisma.resource.findMany({
     where: { ngoId: ngo.id },
     include: {

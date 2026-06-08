@@ -15,13 +15,13 @@ interface RequestForm {
 }
 
 const CATEGORIES = [
-  { value: 'FOOD',      label: '🍱 Food' },
-  { value: 'MEDICAL',   label: '🏥 Medical' },
-  { value: 'SHELTER',   label: '🏠 Shelter' },
-  { value: 'EDUCATION', label: '📚 Education' },
-  { value: 'CLOTHING',  label: '👕 Clothing' },
-  { value: 'FINANCIAL', label: '💰 Financial' },
-  { value: 'OTHER',     label: '📦 Other' },
+  { value: 'FOOD',      label: 'Food' },
+  { value: 'MEDICAL',   label: 'Medical' },
+  { value: 'SHELTER',   label: 'Shelter' },
+  { value: 'EDUCATION', label: 'Education' },
+  { value: 'CLOTHING',  label: 'Clothing' },
+  { value: 'FINANCIAL', label: 'Financial' },
+  { value: 'OTHER',     label: 'Other' },
 ];
 
 export default function SubmitRequestPage() {
@@ -68,8 +68,8 @@ export default function SubmitRequestPage() {
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 py-10">
 
-        {/* Header */}
-        <div className="mb-6">
+        {/* Centered Header */}
+        <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-gray-900">Submit a Help Request</h1>
           <p className="text-sm text-gray-500 mt-1">
             Fill in the details below. An NGO will review your request shortly.
