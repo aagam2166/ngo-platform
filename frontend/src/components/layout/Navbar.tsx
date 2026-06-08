@@ -1,47 +1,122 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useRef, useState } from 'react';
 import { RootState } from '../../store';
 import { logout } from '../../store/authSlice';
-import { useState, useEffect } from 'react';
-import api from '@/lib/api';
+import api from '../../lib/api';
+import toast from 'react-hot-toast';
+
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+const TYPE_STYLES: Record<string, string> = {
+  SUCCESS: 'border-l-2 border-green-400 bg-green-50',
+  ERROR:   'border-l-2 border-red-400 bg-red-50',
+  INFO:    'bg-white',
+};
 
 export default function Navbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((s: RootState) => s.auth);
+
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Fetch unread count whenever auth state changes
   useEffect(() => {
-    if (isAuthenticated) {
-      api.get('/notifications/unread-count')
-        .then(res => setUnreadCount(res.data.data.count))
-        .catch(() => { });
+    if (!isAuthenticated) {
+      setUnreadCount(0);
+      return;
     }
+    api.get('/notifications/unread-count')
+      .then((res) => setUnreadCount(res.data.data.count))
+      .catch(() => {});
   }, [isAuthenticated]);
 
+  // Poll for new notifications every 30 seconds
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    const interval = setInterval(() => {
+      api.get('/notifications/unread-count')
+        .then((res) => setUnreadCount(res.data.data.count))
+        .catch(() => {});
+    }, 30000); // Check every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handle = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, []);
+
   const openNotifications = async () => {
-    setShowNotifications(!showNotifications);
-    if (!showNotifications) {
-      const res = await api.get('/notifications');
-      setNotifications(res.data.data);
+    const opening = !showNotifications;
+    setShowNotifications(opening);
+    if (opening) {
+      try {
+        const res = await api.get('/notifications');
+        setNotifications(res.data.data);
+      } catch { /* silent */ }
     }
-  }
+  };
 
   const markAllRead = async () => {
-    await api.patch('/notifications/read-all');
-    setUnreadCount(0);
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    try {
+      await api.patch('/notifications/read-all');
+      setUnreadCount(0);
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch {
+      toast.error('Failed to mark as read');
+    }
+  };
+
+  const clearAll = async () => {
+    try {
+      await api.delete('/notifications/clear-all');
+      setNotifications([]);
+      setUnreadCount(0);
+      toast.success('Notifications cleared');
+    } catch {
+      toast.error('Failed to clear notifications');
+    }
   };
 
   const handleLogout = () => {
     dispatch(logout());
+    setShowNotifications(false);
+    setNotifications([]);
+    setUnreadCount(0);
     navigate('/');
+    toast.success('Logged out');
   };
 
+  const formatTime = (d: string) =>
+    new Date(d).toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short',
+      hour: '2-digit', minute: '2-digit',
+    });
+
   return (
-    <nav className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+    <nav className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+
+      {/* Logo */}
       <Link to="/" className="flex items-center gap-2">
         <div className="w-7 h-7 bg-orange-500 rounded-md flex items-center justify-center">
           <span className="text-white text-xs font-bold">N</span>
@@ -51,9 +126,11 @@ export default function Navbar() {
         </span>
       </Link>
 
+      {/* Right side */}
       <div className="flex items-center gap-1">
         {isAuthenticated && user ? (
           <>
+            {/* Dashboard link — all roles */}
             <Link
               to="/dashboard"
               className="text-sm text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
@@ -61,7 +138,7 @@ export default function Navbar() {
               Dashboard
             </Link>
 
-            {/* Citizen-specific nav */}
+            {/* CITIZEN-specific nav */}
             {user.role === 'CITIZEN' && (
               <>
                 <Link
@@ -79,8 +156,8 @@ export default function Navbar() {
               </>
             )}
 
-            {/* NGO Admin nav */}
-            {(user.role === 'NGO_ADMIN' || user.role === 'SUPER_ADMIN') && (
+            {/* NGO_ADMIN-specific nav */}
+            {user.role === 'NGO_ADMIN' && (
               <>
                 <Link
                   to="/ngo/donations"
@@ -97,6 +174,119 @@ export default function Navbar() {
               </>
             )}
 
+            {/* SUPER_ADMIN-specific nav — no donation links */}
+            {user.role === 'SUPER_ADMIN' && (
+              <Link
+                to="/admin"
+                className="text-sm text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+              >
+                Admin Panel
+              </Link>
+            )}
+
+            {/* VOLUNTEER-specific nav — no donation links */}
+            {user.role === 'VOLUNTEER' && (
+              <Link
+                to="/volunteer/dashboard"
+                className="text-sm text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+              >
+                My Dashboard
+              </Link>
+            )}
+
+            {/* Notification Bell */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={openNotifications}
+                className={`relative p-2 rounded-lg transition-colors ${
+                  unreadCount > 0 
+                    ? 'text-red-500 bg-red-50 hover:bg-red-100' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                aria-label="Notifications"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 bg-red-600
+                                   text-white text-[10px] font-bold rounded-full
+                                   flex items-center justify-center px-1 animate-pulse">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
+
+                  {/* Header row */}
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                    <span className="font-semibold text-gray-900 text-sm">
+                      Notifications
+                    </span>
+                    <div className="flex items-center gap-3">
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={markAllRead}
+                          className="text-xs text-orange-500 hover:text-orange-600 font-medium"
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                      {notifications.length > 0 && (
+                        <button
+                          onClick={clearAll}
+                          className="text-xs text-red-400 hover:text-red-600 font-medium"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* List */}
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="text-center py-10">
+                        <p className="text-2xl mb-2">🔔</p>
+                        <p className="text-sm text-gray-400">No notifications</p>
+                      </div>
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className={`px-4 py-3 border-b border-gray-50 last:border-0 ${
+                            !n.isRead ? (TYPE_STYLES[n.type] ?? 'bg-orange-50') : ''
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-medium text-gray-900 leading-snug">
+                              {n.title}
+                            </p>
+                            {!n.isRead && (
+                              <span className="w-2 h-2 bg-orange-500 rounded-full shrink-0 mt-1.5" />
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+                            {n.message}
+                          </p>
+                          <p className="text-xs text-gray-300 mt-1">
+                            {formatTime(n.createdAt)}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* User avatar */}
             <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 rounded-lg ml-1">
               <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-bold">
@@ -108,49 +298,6 @@ export default function Navbar() {
               </span>
             </div>
 
-            <div className="relative">
-              <button
-                onClick={openNotifications}
-                className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
-              >
-                🔔
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {showNotifications && (
-                <div className="absolute right-0 top-10 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                    <span className="font-semibold text-gray-900 text-sm">Notifications</span>
-                    <button
-                      onClick={markAllRead}
-                      className="text-xs text-orange-500 hover:text-orange-600 font-medium"
-                    >
-                      Mark all read
-                    </button>
-                  </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    {notifications.length === 0 ? (
-                      <p className="text-sm text-gray-400 text-center py-8">No notifications</p>
-                    ) : (
-                      notifications.map((n) => (
-                        <div
-                          key={n.id}
-                          className={`px-4 py-3 border-b border-gray-50 last:border-0 ${!n.isRead ? 'bg-orange-50' : ''
-                            }`}
-                        >
-                          <p className="text-sm font-medium text-gray-900">{n.title}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{n.message}</p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
             <button
               onClick={handleLogout}
               className="text-sm text-gray-500 hover:text-red-600 font-medium px-3 py-2 rounded-md hover:bg-red-50 transition-colors"
@@ -177,4 +324,4 @@ export default function Navbar() {
       </div>
     </nav>
   );
-}
+}

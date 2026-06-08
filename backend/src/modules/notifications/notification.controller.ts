@@ -6,6 +6,7 @@ import {
   getUnreadCount,
   markOneAsRead,
   markAllAsRead,
+  clearAllNotifications,
 } from './notification.service';
 
 export const getNotificationsHandler = async (
@@ -49,5 +50,16 @@ export const markAllReadHandler = async (
   try {
     const result = await markAllAsRead(req.user!.userId);
     sendSuccess(res, result);
+  } catch (err) { next(err); }
+};
+
+export const clearAllNotificationsHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    await clearAllNotifications(req.user!.userId);
+    sendSuccess(res, { message: 'All notifications cleared' });
   } catch (err) { next(err); }
 };

@@ -52,13 +52,29 @@ export const getMyJoinRequests = async (userId: string) => {
   const volunteer = await prisma.volunteer.findUnique({ where: { userId } });
   if (!volunteer) throw new AppError('Volunteer profile not found', 404);
 
-  return prisma.volunteerJoinRequest.findMany({
+  const requests = await prisma.volunteerJoinRequest.findMany({
     where: { volunteerId: volunteer.id },
     include: {
-      ngo: { select: { name: true, city: true, state: true, isVerified: true } },
+      ngo: { select: { id: true, name: true, city: true, state: true, isVerified: true } },
     },
     orderBy: { createdAt: 'desc' },
   });
+
+  // Filter out requests where volunteer is no longer active in the NGO
+  const filtered = await Promise.all(
+    requests.map(async (req) => {
+      if (req.status === 'APPROVED') {
+        const membership = await prisma.nGOVolunteer.findUnique({
+          where: { ngoId_volunteerId: { ngoId: req.ngoId, volunteerId: volunteer.id } },
+        });
+        // Only include if still active
+        return membership?.isActive ? req : null;
+      }
+      return req;
+    })
+  );
+
+  return filtered.filter((r) => r !== null);
 };
 
 // ── Volunteer withdraws their join request ────────────────────────────────

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import Navbar from '../../components/layout/Navbar';
 import StatusBadge from '../../components/StatusBadge';
 import api from '../../lib/api';
+import { useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast'
 
 type Tab = 'assignments' | 'open-requests' | 'interests' | 'memberships';
 
@@ -37,7 +39,12 @@ const INTEREST_STATUS_STYLES: Record<string, string> = {
 };
 
 export default function VolunteerDashboardPage() {
-  const [tab, setTab] = useState<Tab>('assignments');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(() => {
+    const t = searchParams.get('tab') as Tab;
+    const validTabs: Tab[] = ['assignments', 'open-requests', 'interests', 'memberships'];
+    return validTabs.includes(t) ? t : 'assignments';
+  });
   const [assignments, setAssignments] = useState<any[]>([]);
   const [openRequests, setOpenRequests] = useState<any[]>([]);
   const [interests, setInterests] = useState<any[]>([]);
@@ -56,6 +63,13 @@ export default function VolunteerDashboardPage() {
   const [joinMessage, setJoinMessage] = useState('');
   const [submittingJoin, setSubmittingJoin] = useState(false);
   const [joinError, setJoinError] = useState('');
+
+  const changeTab = (newTab: Tab) => {
+    setTab(newTab);
+    setSearchParams({ tab: newTab });
+  };
+
+
 
   const fetchData = async (currentTab: Tab) => {
     setLoading(true);
@@ -139,6 +153,21 @@ export default function VolunteerDashboardPage() {
     }
   };
 
+  const handleLeaveNGO = async (ngoId: string) => {
+    if (!window.confirm('Leave this NGO? You can re-apply later.')) return;
+    setUpdatingId(ngoId);
+    try {
+      await api.delete(`/volunteers/roster/leave/${ngoId}`);
+      toast.success('You have left the NGO');
+      // Refetch memberships to ensure UI updates correctly
+      await fetchData('memberships');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Failed to leave NGO');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const handleSendJoinRequest = async () => {
     if (!joinNgoId.trim()) {
       setJoinError('Please enter an NGO ID');
@@ -187,21 +216,19 @@ export default function VolunteerDashboardPage() {
           {tabs.map((t) => (
             <button
               key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
-                tab === t.key
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              onClick={() => changeTab(t.key)}
+              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === t.key
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+                }`}
             >
               {t.label}
               {t.count != null && t.count > 0 && (
-                <span className={`ml-2 text-white text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                  t.key === 'assignments' ? 'bg-purple-500' :
+                <span className={`ml-2 text-white text-xs font-bold px-1.5 py-0.5 rounded-full ${t.key === 'assignments' ? 'bg-purple-500' :
                   t.key === 'open-requests' ? 'bg-orange-500' :
-                  t.key === 'interests' ? 'bg-blue-500' :
-                  'bg-yellow-500'
-                }`}>
+                    t.key === 'interests' ? 'bg-blue-500' :
+                      'bg-yellow-500'
+                  }`}>
                   {t.count}
                 </span>
               )}
@@ -263,9 +290,8 @@ export default function VolunteerDashboardPage() {
                           </div>
                         )}
                       </div>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
-                        ASSIGNMENT_STATUS_STYLES[a.status] ?? 'bg-gray-100 text-gray-600'
-                      }`}>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${ASSIGNMENT_STATUS_STYLES[a.status] ?? 'bg-gray-100 text-gray-600'
+                        }`}>
                         {a.status.replace('_', ' ')}
                       </span>
                     </div>
@@ -394,9 +420,8 @@ export default function VolunteerDashboardPage() {
                           </div>
                         )}
                       </div>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
-                        INTEREST_STATUS_STYLES[interest.status] ?? 'bg-gray-100 text-gray-500'
-                      }`}>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${INTEREST_STATUS_STYLES[interest.status] ?? 'bg-gray-100 text-gray-500'
+                        }`}>
                         {interest.status}
                       </span>
                     </div>
@@ -523,9 +548,8 @@ export default function VolunteerDashboardPage() {
                           <p className="text-xs text-gray-500 mt-1 italic">"{req.message}"</p>
                         )}
                       </div>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
-                        JOIN_STATUS_STYLES[req.status] ?? 'bg-gray-100 text-gray-500'
-                      }`}>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${JOIN_STATUS_STYLES[req.status] ?? 'bg-gray-100 text-gray-500'
+                        }`}>
                         {req.status}
                       </span>
                     </div>
@@ -541,9 +565,20 @@ export default function VolunteerDashboardPage() {
                       </div>
                     )}
                     {req.status === 'APPROVED' && (
-                      <p className="text-xs text-green-600 font-medium mt-2">
-                        ✅ You are an active member of this NGO
-                      </p>
+                      <div className="mt-3 pt-2 border-t border-gray-50 flex items-center justify-between">
+                        <p className="text-xs text-green-600 font-medium">
+                          ✅ Active member
+                        </p>
+                        <button
+                          onClick={() => handleLeaveNGO(req.ngoId)}
+                          disabled={updatingId === req.ngoId}
+                          className="text-xs text-red-500 hover:text-red-700 font-medium
+                 border border-red-200 bg-red-50 px-3 py-1 rounded-lg
+                 hover:bg-red-100 transition-colors disabled:opacity-50"
+                        >
+                          {updatingId === req.ngoId ? 'Leaving…' : 'Leave NGO'}
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}
