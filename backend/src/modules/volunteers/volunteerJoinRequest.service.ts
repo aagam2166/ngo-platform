@@ -9,7 +9,10 @@ export const sendJoinRequest = async (
   ngoId: string,
   message?: string
 ) => {
-  const volunteer = await prisma.volunteer.findUnique({ where: { userId } });
+  const volunteer = await prisma.volunteer.findUnique({
+    where: { userId },
+    include: { user: { select: { firstName: true, lastName: true } } },
+  });
   if (!volunteer) throw new AppError('Volunteer profile not found', 404);
 
   const ngo = await prisma.nGO.findUnique({ where: { id: ngoId } });
@@ -28,22 +31,70 @@ export const sendJoinRequest = async (
     where: { volunteerId_ngoId: { volunteerId: volunteer.id, ngoId } },
   });
 
+  let result;
   if (existing) {
     if (existing.status === 'PENDING') {
       throw new AppError('You already have a pending request to join this NGO', 400);
     }
     // Allow re-applying if previously rejected or withdrawn
-    return prisma.volunteerJoinRequest.update({
+    result = await prisma.volunteerJoinRequest.update({
       where: { volunteerId_ngoId: { volunteerId: volunteer.id, ngoId } },
       data: { status: 'PENDING', message, respondedAt: null },
       include: { ngo: { select: { name: true, city: true } } },
     });
+  } else {
+    result = await prisma.volunteerJoinRequest.create({
+      data: { volunteerId: volunteer.id, ngoId, message },
+      include: { ngo: { select: { name: true, city: true } } },
+    });
   }
 
-  return prisma.volunteerJoinRequest.create({
-    data: { volunteerId: volunteer.id, ngoId, message },
-    include: { ngo: { select: { name: true, city: true } } },
+  // Notify the NGO admin about the new join request
+  createNotification(
+    ngo.userId,
+    'JOIN_REQUEST',
+    'New Volunteer Join Request',
+    `${volunteer.user.firstName} ${volunteer.user.lastName} wants to join ${ngo.name} as a volunteer.`
+  ).catch(() => {});
+
+  return result;
+};
+
+// ── Search verified NGOs by name and city (case-insensitive) ───────────────
+
+export const searchVerifiedNGOs = async (
+  name?: string,
+  city?: string
+) => {
+  let ngos = await prisma.nGO.findMany({
+    where: { isVerified: true },
+    select: {
+      id: true,
+      name: true,
+      city: true,
+      state: true,
+      description: true,
+    },
   });
+
+  // Filter in application for reliable case-insensitive search
+  if (name && name.trim()) {
+    const searchName = name.trim().toLowerCase();
+    ngos = ngos.filter((ngo) => ngo.name.toLowerCase().includes(searchName));
+  }
+
+  if (city && city.trim()) {
+    const searchCity = city.trim().toLowerCase();
+    ngos = ngos.filter((ngo) => ngo.city.toLowerCase().includes(searchCity));
+  }
+
+  // Sort results
+  ngos.sort((a, b) => {
+    if (a.city !== b.city) return a.city.localeCompare(b.city);
+    return a.name.localeCompare(b.name);
+  });
+
+  return ngos.slice(0, 50);
 };
 
 // ── Volunteer sees their own join requests ────────────────────────────────
