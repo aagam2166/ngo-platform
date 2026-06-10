@@ -131,7 +131,7 @@ export default function NGOAccountsPage() {
       <Navbar />
 
       {/* Page header */}
-      <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-6 pt-14 pb-16">
+      <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-4 sm:px-6 pt-10 sm:pt-14 pb-14 sm:pb-16">
         <div className="max-w-5xl mx-auto">
           <p className="text-slate-400 text-sm mb-1">{overview?.ngo.name}</p>
           <h1 className="text-3xl font-extrabold mb-1">Financial Accounts</h1>
@@ -139,7 +139,7 @@ export default function NGOAccountsPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 -mt-8 pb-12">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 -mt-8 pb-12">
 
         {/* Stats cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -303,7 +303,7 @@ export default function NGOAccountsPage() {
                 ]
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map(item => (
-                    <div key={`${item.type}-${item.id}`} className="flex items-center justify-between px-5 py-4 hover:bg-slate-50/50 transition-colors">
+                    <div key={`${item.type}-${item.id}`} className="flex items-center justify-between px-4 sm:px-5 py-4 hover:bg-slate-50/50 transition-colors gap-3">
                       <div className="flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
                           item.type === 'donation' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
@@ -315,8 +315,8 @@ export default function NGOAccountsPage() {
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{item.label}</p>
-                          <p className="text-xs text-gray-400">{item.sub} · {fmtDate(item.date)}</p>
+                          <p className="text-sm font-semibold text-gray-900 truncate max-w-[140px] sm:max-w-none">{item.label}</p>
+                          <p className="text-xs text-gray-400 truncate max-w-[160px] sm:max-w-none">{item.sub} · {fmtDate(item.date)}</p>
                         </div>
                       </div>
                       <span className={`text-sm font-bold ${item.type === 'donation' ? 'text-green-600' : 'text-red-500'}`}>

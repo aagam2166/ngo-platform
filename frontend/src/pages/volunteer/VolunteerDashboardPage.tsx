@@ -239,19 +239,19 @@ export default function VolunteerDashboardPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-6 flex-wrap">
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-6 overflow-x-auto scrollbar-none w-full sm:w-fit">
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => changeTab(t.key)}
-              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === t.key
+              className={`px-3 sm:px-4 py-2 sm:py-1.5 rounded-md text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${tab === t.key
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
               {t.label}
               {t.count != null && t.count > 0 && (
-                <span className={`ml-2 text-white text-xs font-bold px-1.5 py-0.5 rounded-full ${t.key === 'assignments' ? 'bg-purple-500' :
+                <span className={`ml-1.5 sm:ml-2 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded-full ${t.key === 'assignments' ? 'bg-purple-500' :
                   t.key === 'open-requests' ? 'bg-orange-500' :
                     t.key === 'interests' ? 'bg-blue-500' :
                       'bg-yellow-500'
@@ -292,10 +292,10 @@ export default function VolunteerDashboardPage() {
               <div className="space-y-4">
                 {assignments.map((a) => (
                   <div key={a.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+                      <div className="flex-1 min-w-0 w-full">
                         <h3 className="font-semibold text-gray-900">{a.request.title}</h3>
-                        <p className="text-sm text-gray-500 mt-0.5">
+                        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                           Citizen: {a.request.citizen.firstName} {a.request.citizen.lastName}
                           {a.request.citizen.phone && (
                             <span className="ml-2 text-orange-600 font-medium">
@@ -308,7 +308,7 @@ export default function VolunteerDashboardPage() {
                             NGO: {a.ngo.name} · {a.ngo.city}
                           </p>
                         )}
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5">
                           Assigned {formatDate(a.assignedAt)}
                         </p>
                         {a.notes && (
@@ -317,7 +317,7 @@ export default function VolunteerDashboardPage() {
                           </div>
                         )}
                       </div>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${ASSIGNMENT_STATUS_STYLES[a.status] ?? 'bg-gray-100 text-gray-600'
+                      <span className={`self-start text-[10px] sm:text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${ASSIGNMENT_STATUS_STYLES[a.status] ?? 'bg-gray-100 text-gray-600'
                         }`}>
                         {a.status.replace('_', ' ')}
                       </span>
@@ -367,27 +367,29 @@ export default function VolunteerDashboardPage() {
               <div className="space-y-4">
                 {openRequests.map((req) => (
                   <div key={req.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:border-orange-200 transition-colors">
-                    <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full font-medium">
+                        <div className="flex items-center gap-2 mb-2 sm:mb-1 flex-wrap">
+                          <span className="text-[10px] sm:text-xs bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full font-medium">
                             {CATEGORY_LABELS[req.category] ?? req.category}
                           </span>
-                          <span className={`text-xs font-semibold ${URGENCY_COLORS[req.urgencyLevel] ?? 'text-gray-500'}`}>
+                          <span className={`text-[10px] sm:text-xs font-semibold ${URGENCY_COLORS[req.urgencyLevel] ?? 'text-gray-500'}`}>
                             Urgency {req.urgencyLevel}/5
                           </span>
                         </div>
-                        <h3 className="font-semibold text-gray-900">{req.title}</h3>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <h3 className="font-semibold text-gray-900 leading-tight">{req.title}</h3>
+                        <p className="text-xs text-gray-500 mt-1 sm:mt-0.5">
                           {req.city}, {req.state} · {formatDate(req.createdAt)}
                         </p>
                         {req.ngo && (
-                          <p className="text-xs text-orange-600 font-medium mt-0.5">
+                          <p className="text-[10px] sm:text-xs text-orange-600 font-medium mt-0.5">
                             Handled by {req.ngo.name}
                           </p>
                         )}
                       </div>
-                      <StatusBadge status={req.status} />
+                      <div className="self-start">
+                        <StatusBadge status={req.status} />
+                      </div>
                     </div>
 
                     {/* Interest form */}
@@ -431,14 +433,14 @@ export default function VolunteerDashboardPage() {
               <div className="space-y-4">
                 {interests.map((interest) => (
                   <div key={interest.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+                      <div className="flex-1 w-full">
                         <h3 className="font-semibold text-gray-900">{interest.request.title}</h3>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
                           {interest.request.city}, {interest.request.state}
                           {interest.ngo && ` · ${interest.ngo.name}`}
                         </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5">
                           Applied {formatDate(interest.createdAt)}
                         </p>
                         {interest.message && (
@@ -447,7 +449,7 @@ export default function VolunteerDashboardPage() {
                           </div>
                         )}
                       </div>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${INTEREST_STATUS_STYLES[interest.status] ?? 'bg-gray-100 text-gray-500'
+                      <span className={`self-start text-[10px] sm:text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${INTEREST_STATUS_STYLES[interest.status] ?? 'bg-gray-100 text-gray-500'
                         }`}>
                         {interest.status}
                       </span>
@@ -622,18 +624,18 @@ export default function VolunteerDashboardPage() {
               <div className="space-y-3">
                 {joinRequests.map((req) => (
                   <div key={req.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                      <div className="w-full">
                         <p className="font-semibold text-gray-900 text-sm">
                           {req.ngo.name}
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
                           {req.ngo.city}, {req.ngo.state}
                           {req.ngo.isVerified && (
                             <span className="ml-2 text-green-600 font-semibold">✓ Verified</span>
                           )}
                         </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5">
                           Applied {formatDate(req.createdAt)}
                           {req.respondedAt && ` · Responded ${formatDate(req.respondedAt)}`}
                         </p>
@@ -641,7 +643,7 @@ export default function VolunteerDashboardPage() {
                           <p className="text-xs text-gray-500 mt-1 italic">"{req.message}"</p>
                         )}
                       </div>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${JOIN_STATUS_STYLES[req.status] ?? 'bg-gray-100 text-gray-500'
+                      <span className={`self-start sm:self-auto text-[10px] sm:text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${JOIN_STATUS_STYLES[req.status] ?? 'bg-gray-100 text-gray-500'
                         }`}>
                         {req.status}
                       </span>
