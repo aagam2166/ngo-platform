@@ -127,13 +127,13 @@ export default function NGODonationsPage() {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Centered Professional Header Section */}
         <div className="text-center mb-10 max-w-2xl mx-auto">
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center justify-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
             Donation Processing Queue
             {pendingCount > 0 && (
-              <span className="text-xs bg-orange-500 text-white px-2.5 py-0.5 rounded-full font-bold tracking-wide animate-pulse">
+              <span className="text-xs bg-orange-500 text-white px-2.5 py-0.5 rounded-full font-bold tracking-wide animate-pulse mt-1 sm:mt-0">
                 {pendingCount} NEW
               </span>
             )}
@@ -177,18 +177,24 @@ export default function NGODonationsPage() {
           <div className="space-y-4">
             {filtered.map(d => (
               <div key={d.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md/50 transition-shadow">
-                <div className="flex items-start justify-between gap-3 mb-4">
-                  <div className="max-w-[70%]">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+                  <div className="w-full sm:max-w-[70%]">
                     {/* Minimal text-only label indicator */}
-                    <span className="inline-block text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-1">
-                      {d.category}
-                    </span>
-                    <p className="font-bold text-gray-900 text-base truncate">{d.itemName}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      <span className="font-semibold text-slate-700">{d.quantity}{d.unit ? ` ${d.unit}` : ''}</span> · Offered {fmtDate(d.createdAt)}
+                    <div className="flex items-center justify-between sm:justify-start mb-1">
+                      <span className="inline-block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                        {d.category}
+                      </span>
+                      <span className={`sm:hidden shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border tracking-wide ${STATUS_STYLES[d.status] ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                        {d.status.charAt(0) + d.status.slice(1).toLowerCase()}
+                      </span>
+                    </div>
+                    <p className="font-bold text-gray-900 text-base sm:truncate">{d.itemName}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 flex flex-wrap gap-1">
+                      <span className="font-semibold text-slate-700">{d.quantity}{d.unit ? ` ${d.unit}` : ''}</span> 
+                      <span>· Offered {fmtDate(d.createdAt)}</span>
                     </p>
                   </div>
-                  <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border tracking-wide ${STATUS_STYLES[d.status] ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                  <span className={`hidden sm:inline-block shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border tracking-wide ${STATUS_STYLES[d.status] ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                     {d.status.charAt(0) + d.status.slice(1).toLowerCase()}
                   </span>
                 </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useForm, useWatch } from 'react-hook-form';
 import Navbar from '../../components/layout/Navbar';
@@ -54,15 +54,21 @@ const ROLE_META: Record<Role, { label: string; icon: string; desc: string }> = {
 export default function RegisterPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState('');
+
+  const roleQuery = searchParams.get('role');
+  let defaultRole: Role = 'CITIZEN';
+  if (roleQuery === 'ngo') defaultRole = 'NGO_ADMIN';
+  else if (roleQuery === 'volunteer') defaultRole = 'VOLUNTEER';
 
   const {
     register,
     handleSubmit,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<RegisterForm>({ defaultValues: { role: 'CITIZEN' } });
+  } = useForm<RegisterForm>({ defaultValues: { role: defaultRole } });
 
   const role = useWatch({ control, name: 'role' }) as Role;
 

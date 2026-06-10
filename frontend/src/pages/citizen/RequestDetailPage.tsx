@@ -201,13 +201,15 @@ export default function RequestDetailPage() {
         </Link>
 
         {/* Header card */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <div className="flex items-start justify-between gap-4">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold text-gray-900">{request.title}</h1>
-              <p className="text-sm text-gray-400 mt-1 font-mono">#{request.id.slice(0, 8)}</p>
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900 break-words">{request.title}</h1>
+              <p className="text-xs sm:text-sm text-gray-400 mt-1 font-mono">#{request.id.slice(0, 8)}</p>
             </div>
-            <StatusBadge status={request.status} />
+            <div className="self-start">
+              <StatusBadge status={request.status} />
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 mt-4">
@@ -236,26 +238,26 @@ export default function RequestDetailPage() {
         </div>
 
         {/* Citizen + NGO info */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Citizen</p>
+            <p className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Citizen</p>
             <p className="font-semibold text-gray-900 text-sm">
               {request.citizen.firstName} {request.citizen.lastName}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">{request.citizen.email}</p>
+            <p className="text-xs text-gray-500 mt-0.5 break-all">{request.citizen.email}</p>
             {request.citizen.phone && (
               <p className="text-xs text-gray-500">{request.citizen.phone}</p>
             )}
           </div>
 
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">NGO</p>
+            <p className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">NGO</p>
             {request.ngo ? (
               <>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-semibold text-gray-900 text-sm">{request.ngo.name}</p>
                   {request.ngo.isVerified && (
-                    <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-semibold">
+                    <span className="text-[10px] sm:text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-semibold">
                       Verified
                     </span>
                   )}

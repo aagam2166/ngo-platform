@@ -97,17 +97,17 @@ export default function MyDonationsPage() {
   return (
     <div className="min-h-screen bg-slate-50/50">
       <Navbar />
-      <main className="max-w-3xl mx-auto px-6 py-12">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
 
         {/* Header Block */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">My Donations</h1>
             <p className="text-sm text-slate-500 mt-1">Track and manage your platform contributions</p>
           </div>
           <Link
             to="/donate"
-            className="bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-700 transition-colors shadow-sm"
+            className="inline-block bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-700 transition-colors shadow-sm text-center"
           >
             + New Donation
           </Link>
@@ -115,7 +115,7 @@ export default function MyDonationsPage() {
 
         {/* Stat Cards Strip */}
         {!loading && !error && (
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
             <div className="bg-white rounded-xl border border-slate-200/60 shadow-sm p-5">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Item Donations</p>
               <p className="text-3xl font-bold text-slate-900 tracking-tight mt-2">{resources.length}</p>
@@ -204,7 +204,7 @@ export default function MyDonationsPage() {
                     </span>
                   </div>
                   {d.description && (
-                    <p className="text-xs text-slate-500 mt-3 pl-14 border-l-2 border-slate-100 leading-relaxed">{d.description}</p>
+                    <p className="text-xs text-slate-500 mt-3 pl-0 sm:pl-14 border-l-0 sm:border-l-2 border-slate-100 leading-relaxed">{d.description}</p>
                   )}
                   {d.ngoNote && (
                     <div className="mt-4 ml-14 p-3.5 bg-orange-50/50 border border-orange-100 rounded-xl">

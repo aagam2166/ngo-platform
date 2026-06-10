@@ -361,19 +361,19 @@ export default function NGODashboard() {
     <div className="min-h-screen bg-slate-50">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 py-10">
+      <main className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-10">
 
         {/* ── Header ── */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center text-2xl">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-green-100 rounded-xl flex items-center justify-center text-2xl shrink-0">
               🏢
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
                 {profile?.name ?? 'NGO Dashboard'}
               </h1>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex flex-wrap items-center gap-2 mt-1">
                 {profile?.isVerified ? (
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
                     Verified
@@ -400,7 +400,7 @@ export default function NGODashboard() {
         </div>
 
         {/* ── Stats ── */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <p className="text-sm text-gray-500">Request Queue</p>
             <p className="text-3xl font-bold text-gray-900 mt-1">{queue.length}</p>
@@ -419,18 +419,18 @@ export default function NGODashboard() {
         </div>
 
         {/* ── Tabs ── */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-6 flex-wrap">
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-6 overflow-x-auto scrollbar-none">
           {/* Queue */}
           <button
             onClick={() => setTab('queue')}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'queue'
+            className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap ${tab === 'queue'
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
               }`}
           >
             Request Queue
             {queue.length > 0 && (
-              <span className="ml-2 bg-orange-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 bg-orange-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
                 {queue.length}
               </span>
             )}
@@ -439,14 +439,14 @@ export default function NGODashboard() {
           {/* My Requests */}
           <button
             onClick={() => setTab('mine')}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'mine'
+            className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap ${tab === 'mine'
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
               }`}
           >
             My Requests
             {myRequests.length > 0 && (
-              <span className="ml-2 bg-gray-400 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 bg-gray-400 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
                 {myRequests.length}
               </span>
             )}
@@ -455,14 +455,14 @@ export default function NGODashboard() {
           {/* Roster */}
           <button
             onClick={() => setTab('roster')}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'roster'
+            className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap ${tab === 'roster'
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
               }`}
           >
             Roster
             {roster.length > 0 && (
-              <span className="ml-2 bg-gray-400 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 bg-gray-400 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
                 {roster.length}
               </span>
             )}
@@ -471,14 +471,14 @@ export default function NGODashboard() {
           {/* Join Requests */}
           <button
             onClick={() => setTab('join-requests')}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'join-requests'
+            className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap ${tab === 'join-requests'
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
               }`}
           >
             Join Requests
             {joinRequests.length > 0 && (
-              <span className="ml-2 bg-orange-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 bg-orange-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
                 {joinRequests.length}
               </span>
             )}
@@ -487,14 +487,14 @@ export default function NGODashboard() {
           {/* Interests */}
           <button
             onClick={() => setTab('interests')}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${tab === 'interests'
+            className={`px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap ${tab === 'interests'
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
               }`}
           >
             Interests
             {volunteerInterests.length > 0 && (
-              <span className="ml-2 bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
                 {volunteerInterests.length}
               </span>
             )}
@@ -522,7 +522,7 @@ export default function NGODashboard() {
                     className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:border-orange-200 transition-colors"
                   >
                     {/* Top row */}
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900">{req.title}</h3>
                         <p className="text-sm text-gray-500 mt-1 line-clamp-2">{req.description}</p>
@@ -536,11 +536,11 @@ export default function NGODashboard() {
                           View Details →
                         </Link>
                       </div>
-                      <div className="flex gap-2 flex-shrink-0">
+                      <div className="flex gap-2 shrink-0">
                         <button
                           onClick={() => handleAccept(req.id)}
                           disabled={accepting === req.id || submittingReject === req.id}
-                          className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex-1 sm:flex-none bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {accepting === req.id ? 'Accepting…' : 'Accept'}
                         </button>
@@ -549,7 +549,7 @@ export default function NGODashboard() {
                             setRejectingId(rejectingId === req.id ? null : req.id)
                           }
                           disabled={accepting === req.id || submittingReject === req.id}
-                          className="bg-white border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex-1 sm:flex-none bg-white border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Reject
                         </button>

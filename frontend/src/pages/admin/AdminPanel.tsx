@@ -83,33 +83,33 @@ export default function AdminPanel() {
       <main className="max-w-5xl mx-auto px-4 py-10">
 
         {/* Header */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center text-2xl">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-100 rounded-xl flex items-center justify-center text-2xl shrink-0">
               ⚙️
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">NGO Approvals</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+            <div className="flex-1 text-center sm:text-left">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">NGO Approvals</h1>
+              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-2 sm:mt-1">
+                <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
                   {pendingCount} Pending
                 </span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
                   {verifiedCount} Verified
                 </span>
-                <span className="text-xs text-gray-400">{ngos.length} total registered</span>
+                <span className="text-[10px] sm:text-xs text-gray-400">{ngos.length} total registered</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Filter tabs */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-6 w-fit">
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-6 w-full sm:w-fit overflow-x-auto scrollbar-none">
           {(['all', 'pending', 'verified'] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-1.5 rounded-md text-sm font-semibold capitalize transition-colors ${
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-1.5 rounded-md text-xs sm:text-sm font-semibold capitalize whitespace-nowrap transition-colors ${
                 filter === f
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
@@ -155,7 +155,7 @@ export default function AdminPanel() {
                 key={ngo.id}
                 className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:border-gray-200 transition-colors"
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-0 sm:gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold text-gray-900">{ngo.name}</h3>
@@ -171,7 +171,7 @@ export default function AdminPanel() {
                     </div>
                     <p className="text-xs text-gray-400 mt-0.5 font-mono">{ngo.registrationNo}</p>
 
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 sm:gap-y-2 mt-4 text-sm">
                       <div>
                         <p className="text-gray-400 text-xs">Location</p>
                         <p className="text-gray-700 font-medium">{ngo.city}, {ngo.state}</p>
@@ -201,12 +201,12 @@ export default function AdminPanel() {
                     </p>
                   </div>
 
-                  <div className="flex flex-col gap-2 flex-shrink-0">
+                  <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 mt-4 sm:mt-0 flex-shrink-0 border-t sm:border-0 border-gray-100 pt-3 sm:pt-0">
                     {!ngo.isVerified ? (
                       <button
                         onClick={() => handleApprove(ngo.id)}
                         disabled={actionLoading === ngo.id}
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto bg-green-600 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {actionLoading === ngo.id ? 'Approving…' : 'Approve'}
                       </button>
@@ -214,7 +214,7 @@ export default function AdminPanel() {
                       <button
                         onClick={() => handleRevoke(ngo.id)}
                         disabled={actionLoading === ngo.id}
-                        className="border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto border border-red-300 text-red-600 px-4 py-2.5 sm:py-2 rounded-lg text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {actionLoading === ngo.id ? 'Revoking…' : 'Revoke'}
                       </button>

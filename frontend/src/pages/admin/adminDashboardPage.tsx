@@ -67,45 +67,45 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-6 py-10">
         {/* Header Block */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Admin Dashboard</h1>
-          <p className="text-sm text-slate-500 mt-1">Platform overview metrics and operational system data management</p>
+        <div className="mb-6 sm:mb-8 text-center sm:text-left">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Admin Dashboard</h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">Platform overview metrics and operational system data management</p>
         </div>
 
         {/* Top Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-6 sm:mb-8">
+          <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Users</p>
-            <p className="text-3xl font-bold text-slate-900 mt-2">{stats.users?.total ?? 0}</p>
+            <p className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Users</p>
+            <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1 sm:mt-2">{stats.users?.total ?? 0}</p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
+          <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-amber-500" />
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Registered NGOs</p>
-            <p className="text-3xl font-bold text-slate-900 mt-2">{stats.ngos?.total ?? 0}</p>
+            <p className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">Registered NGOs</p>
+            <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1 sm:mt-2">{stats.ngos?.total ?? 0}</p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
+          <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-purple-500" />
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">System Requests</p>
-            <p className="text-3xl font-bold text-slate-900 mt-2">{stats.requests?.total ?? 0}</p>
+            <p className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">System Requests</p>
+            <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1 sm:mt-2">{stats.requests?.total ?? 0}</p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
+          <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-rose-500" />
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Volunteers</p>
-            <p className="text-3xl font-bold text-slate-900 mt-2">{stats.volunteers?.total ?? 0}</p>
+            <p className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Volunteers</p>
+            <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1 sm:mt-2">{stats.volunteers?.total ?? 0}</p>
           </div>
         </div>
 
         {/* Dynamic View Segment Control Tabs */}
-        <div className="flex gap-1.5 border-b border-slate-200 pb-px mb-6">
+        <div className="flex overflow-x-auto scrollbar-none gap-1.5 border-b border-slate-200 pb-px mb-6">
           {(['overview', 'users', 'ngos'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`text-xs font-bold px-4 py-2.5 border-b-2 transition-all capitalize -mb-px ${
+              className={`text-xs font-bold px-4 py-2.5 border-b-2 transition-all capitalize whitespace-nowrap -mb-px ${
                 activeTab === tab
                   ? 'border-orange-500 text-orange-600 font-extrabold'
                   : 'border-transparent text-slate-400 hover:text-slate-600'
@@ -164,28 +164,28 @@ export default function AdminDashboard() {
             </div>
 
             {/* Lower Horizontal Matrix Metrics (Verification Statuses) */}
-            <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+            <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-100 shadow-sm">
               <h3 className="text-xs font-bold text-slate-400 tracking-wider uppercase mb-5">NGO Verification Status Matrix</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-                <div className="pt-4 sm:pt-0 sm:pl-0 flex flex-col justify-center">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                <div className="pt-2 sm:pt-0 sm:pl-0 flex flex-col justify-center">
                   <span className="text-xs font-bold text-green-600 uppercase tracking-wider block">Verified Entities</span>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-3xl font-extrabold text-slate-900">{stats.ngos?.verified ?? 0}</span>
-                    <span className="text-2xs font-semibold text-slate-400">organizations</span>
+                    <span className="text-2xl sm:text-3xl font-extrabold text-slate-900">{stats.ngos?.verified ?? 0}</span>
+                    <span className="text-[10px] sm:text-2xs font-semibold text-slate-400">organizations</span>
                   </div>
                 </div>
                 <div className="pt-4 sm:pt-0 sm:pl-6 flex flex-col justify-center">
                   <span className="text-xs font-bold text-amber-600 uppercase tracking-wider block">Pending Credentials</span>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-3xl font-extrabold text-slate-900">{stats.ngos?.pending ?? 0}</span>
-                    <span className="text-2xs font-semibold text-slate-400">awaiting audit</span>
+                    <span className="text-2xl sm:text-3xl font-extrabold text-slate-900">{stats.ngos?.pending ?? 0}</span>
+                    <span className="text-[10px] sm:text-2xs font-semibold text-slate-400">awaiting audit</span>
                   </div>
                 </div>
                 <div className="pt-4 sm:pt-0 sm:pl-6 flex flex-col justify-center">
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Allocated Resources</span>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-3xl font-extrabold text-slate-900">{stats.resources?.total ?? 0}</span>
-                    <span className="text-2xs font-semibold text-slate-400">active assets</span>
+                    <span className="text-2xl sm:text-3xl font-extrabold text-slate-900">{stats.resources?.total ?? 0}</span>
+                    <span className="text-[10px] sm:text-2xs font-semibold text-slate-400">active assets</span>
                   </div>
                 </div>
               </div>
