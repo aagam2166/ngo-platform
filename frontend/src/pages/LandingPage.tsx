@@ -48,7 +48,7 @@ export default function LandingPage() {
               to="/register"
               className="w-full sm:w-auto inline-flex items-center justify-center bg-orange-500 hover:bg-orange-600 text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md active:scale-[0.99]"
             >
-              Get Started / Register
+              Get Stopped / Don't Register
             </Link>
             <Link
               to="/login"
