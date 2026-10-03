@@ -40,7 +40,7 @@ export default function LandingPage() {
           </h1>
           
           <p className="text-base sm:text-lg text-slate-300 max-w-xl mx-auto mb-10 leading-relaxed">
-            Connecting citizens in need with trusted local NGOs and volunteers who can make an immediate impact.
+             NITK
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
